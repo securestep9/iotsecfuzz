@@ -1,22 +1,16 @@
 import sys
-import pkgutil
 from enum import Enum
-from util.exceptions import *
+
+import core.console.ISFConsole as ISFConsole
+import util.commons as commons
 from util.events import EventEmitter
-from termcolor import cprint
-from tabulate import tabulate
+from util.exceptions import *
 
 
 class State(Enum):
     LOADING_MODULES = 0
     LOADING_GUI = 1
     READY = 2
-
-
-class LogLevel(Enum):
-    ALL = 0
-    FINE = 1
-    ERROR = 2
 
 
 class Param:
@@ -119,21 +113,8 @@ console_mode = False
 state = State.LOADING_MODULES
 
 
-def load_modules_from_directory(dir_name):
-    for importer, package_name, is_pkg in pkgutil.walk_packages([dir_name]):
-        if package_name not in sys.modules:
-            importer.find_module(package_name).load_module(package_name)
-
-
-def console_message(msg, level=LogLevel.ALL):
-    prefix = ["*", "+", "-"]
-    colors = ["cyan", "green", "red"]
-    cprint("[%s] " % prefix[level.value], color=colors[level.value], end="")
-    print(msg)
-
-
 def error_message(msg):
-    console_message(msg, LogLevel.ERROR)
+    ISFConsole.console_message(msg, ISFConsole.LogLevel.ERROR)
 
 
 def register_module(wrapper_cls, module_cls):
@@ -173,159 +154,28 @@ def build_gui():
     pass
 
 
-def run_console():
-    global curr_module, module_in_params
-    curr_module_name = None
-    while True:
-        print("ISFFramework ", end="")
-        if curr_module:
-            print("(", end="")
-            cprint(curr_module_name, color="yellow", end="")
-            print(") ", end="")
-        print("> ", end="")
-        user_input = input().split()
-        if not user_input:
-            continue
-        cmd = user_input[0].strip()
-        if cmd == "exit" or cmd == "quit":
-            break
-        elif cmd == "use" or cmd == "select" or cmd == "sel":
-            if len(user_input) < 2:
-                console_message("Usage: %s <module name>" % cmd, LogLevel.ERROR)
-                continue
-            name = user_input[1]
-            if name not in loaded_modules:
-                console_message("No module named %s" % name, LogLevel.ERROR)
-                continue
-            curr_module_name = name
-            curr_module = loaded_modules[name]()
-            module_in_params = dict()
-            for p_name, p in curr_module.in_params.items():
-                if p.default_value:
-                    module_in_params[p_name] = p.default_value
-        elif cmd == "params" or cmd == "options":
-            if not curr_module:
-                console_message("No module selected", LogLevel.ERROR)
-                continue
-            console_message("Module input parameters:")
-            print(tabulate([[n, p.value_type.__name__, p.required,
-                             p.default_value, p.description] for n, p in
-                            curr_module.in_params.items()],
-                           headers=["Name", "Type", "Required", "Default value",
-                                    "Description"],
-                           tablefmt="psql"))
-            if hasattr(curr_module, "out_params"):
-                console_message("Module output parameters: ")
-                print(tabulate([[n, p.description] for n, p in
-                                curr_module.out_params.items()],
-                               headers=["Name", "Description"],
-                               tablefmt="psql"))
-        elif cmd == "run" or cmd == "start":
-            if not curr_module:
-                console_message("No module selected", LogLevel.ERROR)
-            else:
-                console_message("Running module '%s'..." % curr_module_name)
-                out = None
-                try:
-                    out = curr_module.run(module_in_params)
-                except Exception as e:
-                    error_message(
-                        "Error encountered while running module: %s" % str(e))
-                if out:
-                    console_message("Module output:", LogLevel.FINE)
-                    print(tabulate([[k, v] for k, v in out.items()],
-                                   headers=["Name", "Value"],
-                                   tablefmt="psql"))
-        elif cmd == "set":
-            if len(user_input) < 3:
-                console_message("Usage: set <parameter name> <value>",
-                                LogLevel.ERROR)
-                continue
-            if not curr_module:
-                console_message("No module selected", LogLevel.ERROR)
-                continue
-            p_name = user_input[1]
-            if p_name not in curr_module.in_params:
-                console_message(
-                    "Module '%s' does not require parameter '%s'" % (
-                        curr_module_name, p_name), LogLevel.ERROR)
-                continue
-            p_value_str = " ".join(user_input).replace(cmd, "", 1)
-            p_value_str = p_value_str.replace(p_name, "", 1).strip()
-            p_type = curr_module.in_params[p_name].value_type
-            p_value = None
-            try:
-                p_value = p_type(p_value_str)
-            except ValueError:
-                console_message("'%s' is not a valid value of type '%s'" % (
-                    p_value_str, p_type.__name__), LogLevel.ERROR)
-                continue
-            module_in_params[p_name] = p_value
-            console_message("%s ==> %s" % (p_name, p_value_str), LogLevel.FINE)
-        elif cmd == "back":
-            curr_module = None
-            curr_module_name = None
-            module_in_params = dict()
-            continue
-        elif cmd == "help":
-            # use command
-            cprint(" use <module name> ", color="cyan", end="")
-            print("select module to work with")
-            print("   aliases: ", end="")
-            cprint("select, sel ", color="cyan")
-
-            # options command
-            cprint(" params ", color="cyan", end="")
-            print("print module input/output parameters")
-            print("   aliases: ", end="")
-            cprint("options ", color="cyan")
-
-            # set command
-            cprint(" set <parameter name> <value> ", color="cyan", end="")
-            print("set module input parameter value")
-
-            # run command
-            cprint(" run ", color="cyan", end="")
-            print("execute selected module")
-            print("   aliases: ", end="")
-            cprint("start ", color="cyan")
-
-            # back command
-            cprint(" back ", color="cyan", end="")
-            print("exit selected module")
-
-            # help command
-            cprint(" help ", color="cyan", end="")
-            print("display help")
-
-            # exit command
-            cprint(" exit ", color="cyan", end="")
-            print("shut down the framework")
-            print("   aliases: ", end="")
-            cprint("quit ", color="cyan")
-        else:
-            console_message("Unknown command: %s" % cmd, LogLevel.ERROR)
-
-
 def start():
     global state, console_mode
-    console_message("Starting IoTSecFuzz Framework")
-    console_message("Fetching modules")
-    load_modules_from_directory("modules")
-    console_message("Loaded %d modules" % len(list(loaded_modules.keys())),
-                    LogLevel.FINE)
+    ISFConsole.console_message("Starting IoTSecFuzz Framework")
+    ISFConsole.console_message("Fetching modules")
+    commons.load_modules_from_directory("modules")
+    ISFConsole.console_message(
+        "Loaded %d modules" % len(list(loaded_modules.keys())),
+        ISFConsole.LogLevel.FINE)
     if "--nogui" not in sys.argv:
         console_mode = True
-        console_message("Console mode requested, skipping GUI initialization")
+        ISFConsole.console_message(
+            "Console mode requested, skipping GUI initialization")
     else:
         state = State.LOADING_GUI
-        console_message("Loading GUI")
-        load_modules_from_directory("gui")
-        console_message(
+        ISFConsole.console_message("Loading GUI")
+        commons.load_modules_from_directory("gui")
+        ISFConsole.console_message(
             "Loaded %d GUI classes" % len(list(loaded_gui_classes.keys())),
-            LogLevel.FINE)
+            ISFConsole.LogLevel.FINE)
     state = State.READY
     if console_mode:
-        run_console()
+        ISFConsole.register_commands()
+        ISFConsole.run_console()
     else:
         build_gui()
