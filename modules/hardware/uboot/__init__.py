@@ -1,5 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import serial,time
+import serial,time,string,re
 
 @ISFContainer(version="1.0",
            author="Not_so_sm4rt_hom3 team")
@@ -8,7 +8,7 @@ class UBootWorker:
         "Device": Param("Path to device. Example: COM14", required=False, default_value='/dev/tty.usbserial-00000000'),
         "Baudrate": Param("Digital baudrate for serial connection", value_type=int, required=False, default_value=115200),
         "Timeout": Param("Timeout between requests",required=False, default_value=1, value_type=float),
-        "VERBOSE": Param("Use verbose output", required=False, value_type=bool, default_value=False)
+        "Debug": Param("Use verbose output", required=False, value_type=bool, default_value=False)
     }
 
     out_params = {
@@ -18,27 +18,28 @@ class UBootWorker:
 
     baudrate = 115200
     device_path = ''
-    ready = 0
+    connected = 0
     timeout = 0.1
     ser = ''
-    verbose = False
+    debug = False
+    readyConsole = False
 
     def __init__(self, in_params):
         self.device_path = in_params['Device']
         self.baudrate = in_params['Baudrate']
         self.timeout = in_params['Timeout']
-        self.verbose = in_params['VERBOSE']
+        self.debug = in_params['Debug']
 
         #return {"TEST": "yay"}
 
     def __del__(self):
-        if self.ready:
+        if self.connected:
             self.ser.close()
 
     def first_connect(self):
         #try:
-        self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout)
-        self.ready = 1
+        self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout, exclusive=1)
+        self.connected = 1
         #except:
         #    pass
 
@@ -49,25 +50,29 @@ class UBootWorker:
                },
                out_params={"result": Param("Result answer", value_type=str)})
     def sendCMD(self, params):
-        if self.ready==0:
+        if self.connected==0:
             self.first_connect()
         ans = ''
         cmd = params['message']
-        if self.verbose:
+        if self.debug:
             print([cmd])
-        if self.ready:
+        if self.connected:
             for x in range(10):
                 self.ser.write(b'\r\n'*3)
             for x in range(3):
                 self.ser.read(100)
-            self.ser.write(cmd.encode('ascii'))
-            time.sleep(self.timeout)
+            self.ser.write(cmd.encode('ascii')+b'\r\n')
+            #time.sleep(self.timeout)
             ans = self.ser.read(10000)
-        return {'result': ans}
+            if self.debug:
+                print('Serial response:',ans.decode('ascii'))
+        return {'result': ans.decode('ascii')}
 
     @submodule(name="UbootOnOff",
                    description="Turn on U-Boot console",
-                   in_params={},
+                   in_params={
+
+                   },
                    out_params={"Success": Param("Result status", value_type=bool)})
     def consoleInitializer(self, params):
         print('Turn off your device & wait for 5 seconds.')
@@ -76,29 +81,105 @@ class UBootWorker:
         print('Turn on device & wait for 10 seconds.')
         counter = 0
         answer = ''
-        while counter < 10:
+        while counter < 20:
             self.sendCMD({'message': '\x03'})
             counter+=1
-        version = self.getVersion({})
-        print(version)
-
+        self.readyConsole = 1
+        version = self.getVersion({'Need2Open':False})['version']
+        if not version!='':
+            print('Can\'t create connection to Serial CLI!')
+        return {'Success':version != ''}
 
 
     @submodule(name="UARTenvReader",
                description="Get list & values of U-Boot environment",
-               in_params={},
+               in_params={
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True)
+               },
                out_params={"ValueList": Param("Dictionary of values", value_type=dict)})
     def getEnvs(self,params):
-        #TODO: добавить форматирование
-        ans = self.sendCMD({'message':'printenv'})
-        return ans
 
+        if params['Need2Open'] and self.readyConsole==0:
+            self.consoleInitializer({})
+        if self.readyConsole:
+            result = self.sendCMD({'message': 'printenv'})['result']
+            if self.debug:
+                print(result)
+            ans = result.split('U-Boot>')[0].split('printenv\r\n')[1]
+            arr = ans.split('\r\n')
+            vec = {}
+            if self.debug:
+                print(arr)
+            for x in arr:
+                vec[x.split('=')[0]] = '='.join(x.split('=')[1:])
+            return {'ValueList':vec}
+        else:
+            return {'ValueList':{}}
 
+    @submodule(name="UbootVersion",
+               description="Get version of U-Boot loader",
+               in_params={
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True)
+               },
+               out_params={"version": Param("U-Boot version", value_type=str)})
     def getVersion(self, params):
-        #TODO: добавить форматирование
-        ans = self.sendCMD({'message':'version'})
-        return ans
+        if params['Need2Open']:
+            self.consoleInitializer({})
+        ans = ''
+        if self.readyConsole:
+            result = self.sendCMD({'message':'version'})['result']
+            if self.debug:
+                print('Result:',result)
+            ans = result.split('U-Boot>')[0].split('version\r\n\r\n')[1]
+        return {'version':ans}
 
+
+    @submodule(name="UbootDumper",
+               description="Dump firmware with U-Boot CLI output",
+               in_params={
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True),
+                   "DumpType": Param("tftp, microsd, serial. Default: serial", value_type=str, required=False, default_value='serial'),
+                   "Path": Param("Save dump to.", value_type=str, required=True),
+                   "Offset": Param("Offset of firmware data in memory", value_type=int, required=False, default_value=0x40000),
+                   "Length": Param("Length of firmware in bytes", value_type=int, required=False, default_value=1024*50)
+               },
+               out_params={"Result": Param("Result status", value_type=bool)})
     def dumpFirmMD(self,params):
         #TODO: дампить прошивку из output
-        return
+
+        if params['Need2Open']:
+            self.consoleInitializer({})
+
+        varibles = self.getEnvs(params)['ValueList']
+        runcmd = ';'.join(varibles['bootcmd'].split(';')[0:-1])
+
+        val2replace = re.findall(r'\$[\d\w]*',runcmd)
+        for x in val2replace:
+            if x in runcmd and x[1:] in varibles:
+                runcmd = runcmd.replace(x,varibles[x[1:]])
+
+        #запускаем все кроме последней команды (разделены ;)
+
+        result = self.sendCMD({'message': runcmd})['result']
+
+        if self.debug:
+            print(result)
+
+        print('Wait for loading firmware! (10 sec)')
+
+        time.sleep(10)
+
+        #считываем
+        runcmd = 'md.l '+hex(params['Offset'])
+
+        if self.debug:
+            print(runcmd)
+
+        result = self.sendCMD({'message': runcmd})['result']
+
+        if self.debug:
+            print(result)
+
+        r = '[0-9a-fA-F]{8}: [0-9a-fA-F]{8} [0-9a-fA-F]{8} [0-9a-fA-F]{8} [0-9a-fA-F]{8}    .{16}'
+        bool(re.match(r, s))
+        return {}
