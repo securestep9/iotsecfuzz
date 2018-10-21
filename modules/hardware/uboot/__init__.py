@@ -7,7 +7,7 @@ class UBootWorker:
     in_params = {
         "Device": Param("Path to device. Example: COM14", required=False, default_value='/dev/tty.usbserial-00000000'),
         "Baudrate": Param("Digital baudrate for serial connection", value_type=int, required=False, default_value=115200),
-        "Timeout": Param("Timeout between requests",required=False, default_value=1, value_type=int),
+        "Timeout": Param("Timeout between requests",required=False, default_value=1, value_type=float),
         "VERBOSE": Param("Use verbose output", required=False, value_type=bool, default_value=False)
     }
 
@@ -24,19 +24,11 @@ class UBootWorker:
     verbose = False
 
     def __init__(self, in_params):
-        # do some general stuff
-        self.connected = True
-        print("Connected to target %s" % in_params["Device"])
+        self.device_path = in_params['Device']
+        self.baudrate = in_params['Baudrate']
+        self.timeout = in_params['Timeout']
+        self.verbose = in_params['VERBOSE']
 
-    def run(self, params):
-        self.device_path = params['Device']
-        self.baudrate = params['Baudrate']
-        self.timeout = params['Timeout']
-        self.verbose = params['VERBOSE']
-        self.prepare2send()
-
-        if self.verbose:
-            print(params["TARGET"])
         #return {"TEST": "yay"}
 
     def __del__(self):
@@ -44,11 +36,11 @@ class UBootWorker:
             self.ser.close()
 
     def first_connect(self):
-        try:
-            self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout)
-            self.ready = 1
-        except:
-            pass
+        #try:
+        self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout)
+        self.ready = 1
+        #except:
+        #    pass
 
     @submodule(name="TTLTalk",
                description="Send and receive UART messages",
@@ -57,6 +49,8 @@ class UBootWorker:
                },
                out_params={"result": Param("Result answer", value_type=str)})
     def sendCMD(self, params):
+        if self.ready==0:
+            self.first_connect()
         ans = ''
         cmd = params['message']
         if self.verbose:
@@ -67,7 +61,7 @@ class UBootWorker:
             for x in range(3):
                 self.ser.read(100)
             self.ser.write(cmd.encode('ascii'))
-            time.sleep(1)
+            time.sleep(self.timeout)
             ans = self.ser.read(10000)
         return {'result': ans}
 
@@ -77,14 +71,16 @@ class UBootWorker:
                    out_params={"Success": Param("Result status", value_type=bool)})
     def consoleInitializer(self, params):
         print('Turn off your device & wait for 5 seconds.')
-        time.delay(5)
+        time.sleep(5)
         self.sendCMD({'message':'\x03'})
         print('Turn on device & wait for 10 seconds.')
         counter = 0
         answer = ''
-        while counter < 100:
+        while counter < 10:
             self.sendCMD({'message': '\x03'})
-        version = self.getVersion({})['version']
+            counter+=1
+        version = self.getVersion({})
+        print(version)
 
 
 
