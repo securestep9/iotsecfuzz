@@ -5,8 +5,8 @@ import serial,time
            author="Not_so_sm4rt_hom3 team")
 class UBootWorker:
     in_params = {
-        "Device": Param("Path to device. Example: COM14", required=True, default_value='/dev/ttyACM0'),
-        "Baudrate": Param("Digital baudrate for serial connection", value_type=int, required=True, default_value=115200),
+        "Device": Param("Path to device. Example: COM14", required=False, default_value='/dev/tty.usbserial-00000000'),
+        "Baudrate": Param("Digital baudrate for serial connection", value_type=int, required=False, default_value=115200),
         "Timeout": Param("Timeout between requests",required=False, default_value=1, value_type=int),
         "VERBOSE": Param("Use verbose output", required=False, value_type=bool, default_value=False)
     }
@@ -22,6 +22,11 @@ class UBootWorker:
     timeout = 0.1
     ser = ''
     verbose = False
+
+    def __init__(self, in_params):
+        # do some general stuff
+        self.connected = True
+        print("Connected to target %s" % in_params["Device"])
 
     def run(self, params):
         self.device_path = params['Device']
@@ -54,15 +59,17 @@ class UBootWorker:
     def sendCMD(self, params):
         ans = ''
         cmd = params['message']
+        if self.verbose:
+            print([cmd])
         if self.ready:
             for x in range(10):
                 self.ser.write(b'\r\n'*3)
             for x in range(3):
                 self.ser.read(100)
-            self.ser.write(cmd)
+            self.ser.write(cmd.encode('ascii'))
             time.sleep(1)
             ans = self.ser.read(10000)
-        return {'result': ans.decode()}
+        return {'result': ans}
 
     @submodule(name="UbootOnOff",
                    description="Turn on U-Boot console",
@@ -78,7 +85,6 @@ class UBootWorker:
         while counter < 100:
             self.sendCMD({'message': '\x03'})
         version = self.getVersion({})['version']
-        if version ==
 
 
 
@@ -86,17 +92,17 @@ class UBootWorker:
                description="Get list & values of U-Boot environment",
                in_params={},
                out_params={"ValueList": Param("Dictionary of values", value_type=dict)})
-    def getEnvs(self):
+    def getEnvs(self,params):
         #TODO: добавить форматирование
-        ans = self.sendCMD(b'printenv')
+        ans = self.sendCMD({'message':'printenv'})
         return ans
 
 
     def getVersion(self, params):
         #TODO: добавить форматирование
-        ans = self.sendCMD(b'version')
+        ans = self.sendCMD({'message':'version'})
         return ans
 
-    def dumpFirmMD(self):
+    def dumpFirmMD(self,params):
         #TODO: дампить прошивку из output
         return
