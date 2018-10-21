@@ -75,37 +75,39 @@ class ISFContainer:
 
 def register_submodules():
     for data in submodule_methods:
-        container_name = data[0]
-        func = data[1]
-        name = data[2]
-        description = data[3]
-        in_params = data[4]
-        out_params = data[5]
-        container = container_classes[container_name]
-        in_p = dict()
-        in_p.update(container.in_params)
-        in_p.update(in_params)
-        out_p = out_params if out_params else dict()
+        register_submodule(data)
 
-        class SubmoduleWrapper(EventEmitter):
 
-            in_params = in_p
+def register_submodule(data):
+    container_name = data[0]
+    func = data[1]
+    name = data[2]
+    description = data[3]
+    in_params = data[4]
+    out_params = data[5]
+    container = container_classes[container_name]
+    in_p = dict()
+    in_p.update(container.in_params)
+    in_p.update(in_params)
+    out_p = out_params if out_params else dict()
 
-            out_params = out_p
+    class SubmoduleWrapper(EventEmitter):
+        in_params = in_p
 
-            def run(self, in_params_):
-                validated = validate_params(in_p, in_params_)
-                if validated:
-                    c = container(in_params_)
-                    return func(c, in_params_)
+        out_params = out_p
 
-        SubmoduleWrapper.name = name
-        SubmoduleWrapper.version = container.version
-        SubmoduleWrapper.description = description
-        SubmoduleWrapper.author = container.author
-        register_module(SubmoduleWrapper,
-                        container_name + "/" + name)
+        def run(self, in_params_):
+            validated = validate_params(in_p, in_params_)
+            if validated:
+                c = container(in_params_)
+                return func(c, in_params_)
 
+    SubmoduleWrapper.name = name
+    SubmoduleWrapper.version = container.version
+    SubmoduleWrapper.description = description
+    SubmoduleWrapper.author = container.author
+    register_module(SubmoduleWrapper,
+                    container_name + "/" + name)
 
 def submodule(*, name, description, in_params, out_params=None):
     def decorator(func):
