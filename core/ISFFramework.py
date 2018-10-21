@@ -66,7 +66,7 @@ class ISFContainer:
                 validated = validate_params(
                     super(ContainerWrapper, self).in_params, params)
                 if validated:
-                    out = super(ContainerWrapper, self).run(params)
+                    out = super(ContainerWrapper, self).run(validated)
                     return out if out else dict()
 
         container_classes[cls.__module__.replace(".", "/")] = ContainerWrapper
@@ -99,8 +99,8 @@ def register_submodule(data):
         def run(self, in_params_):
             validated = validate_params(in_p, in_params_)
             if validated:
-                c = container(in_params_)
-                return func(c, in_params_)
+                c = container(validated)
+                return func(c, validated)
 
     SubmoduleWrapper.name = name
     SubmoduleWrapper.version = container.version
@@ -173,7 +173,7 @@ class ISFModule:
                 validated = validate_params(
                     super(ModuleWrapper, self).in_params, params)
                 if validated:
-                    out = super(ModuleWrapper, self).run(params)
+                    out = super(ModuleWrapper, self).run(validated)
                     return out if out else dict()
 
         register_module(ModuleWrapper, cls.__module__.replace(".", "/"))
