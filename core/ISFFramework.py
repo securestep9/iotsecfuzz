@@ -244,7 +244,7 @@ def validate_params(in_params, params):
             except ValueError:
                 error_message("Parameter %s has invalid type" % p_name)
                 return
-    return params
+    return validated
 
 
 def build_gui():
