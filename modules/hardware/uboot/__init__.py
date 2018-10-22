@@ -62,7 +62,7 @@ class UBootWorker:
             for x in range(3):
                 self.ser.read(100)
             self.ser.write(cmd.encode('ascii')+b'\r\n')
-            #time.sleep(self.timeout)
+            time.sleep(self.timeout)
             ans = self.ser.read(10000)
             if self.debug:
                 print('Serial response:',ans.decode('ascii'))
@@ -101,20 +101,17 @@ class UBootWorker:
 
         if params['Need2Open'] and self.readyConsole==0:
             self.consoleInitializer({})
-        if self.readyConsole:
-            result = self.sendCMD({'message': 'printenv'})['result']
-            if self.debug:
-                print(result)
-            ans = result.split('U-Boot>')[0].split('printenv\r\n')[1]
-            arr = ans.split('\r\n')
-            vec = {}
-            if self.debug:
-                print(arr)
-            for x in arr:
-                vec[x.split('=')[0]] = '='.join(x.split('=')[1:])
-            return {'ValueList':vec}
-        else:
-            return {'ValueList':{}}
+        result = self.sendCMD({'message': 'printenv'})['result']
+        if self.debug:
+            print(result)
+        ans = result.split('U-Boot>')[0].split('printenv\r\n')[1]
+        arr = ans.split('\r\n')
+        vec = {}
+        if self.debug:
+            print(arr)
+        for x in arr:
+            vec[x.split('=')[0]] = '='.join(x.split('=')[1:])
+        return {'ValueList':vec}
 
     @submodule(name="UbootVersion",
                description="Get version of U-Boot loader",
@@ -137,13 +134,13 @@ class UBootWorker:
     @submodule(name="UbootDumper",
                description="Dump firmware with U-Boot CLI output",
                in_params={
-                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True),
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=int, required=False, default_value=1),
                    "DumpType": Param("tftp, microsd, serial. Default: serial", value_type=str, required=False, default_value='serial'),
                    "Path": Param("Save dump to.", value_type=str, required=True),
                    "Offset": Param("Offset of firmware data in memory", value_type=int, required=False, default_value=0x40000),
                    "Length": Param("Length of firmware in bytes", value_type=int, required=False, default_value=1024*50)
                },
-               out_params={"Result": Param("Result status", value_type=bool)})
+               out_params={"Size": Param("Size of downloaded firmware", value_type=int)})
     def dumpFirmMD(self,params):
         #TODO: дампить прошивку из output
 
@@ -151,6 +148,8 @@ class UBootWorker:
             self.consoleInitializer({})
 
         varibles = self.getEnvs(params)['ValueList']
+        if self.debug:
+            print(varibles)
         runcmd = ';'.join(varibles['bootcmd'].split(';')[0:-1])
 
         val2replace = re.findall(r'\$[\d\w]*',runcmd)
@@ -169,17 +168,43 @@ class UBootWorker:
 
         time.sleep(10)
 
+        offset = params['Offset']
+        firmware_bytes = b''
         #считываем
-        runcmd = 'md.l '+hex(params['Offset'])
+        while offset-params['Offset'] < params['Length']:
+            print("Reading memory from {} to {}".format(hex(offset),hex(offset+0x100)))
+            runcmd = 'md.l '+hex(offset)
 
-        if self.debug:
-            print(runcmd)
+            if self.debug:
+                print(runcmd)
 
-        result = self.sendCMD({'message': runcmd})['result']
+            result = self.sendCMD({'message': runcmd})['result']
+            if self.debug:
 
-        if self.debug:
-            print(result)
+                print('====DEBUG====')
+                print(result)
 
-        r = '[0-9a-fA-F]{8}: [0-9a-fA-F]{8} [0-9a-fA-F]{8} [0-9a-fA-F]{8} [0-9a-fA-F]{8}    .{16}'
-        bool(re.match(r, s))
-        return {}
+            result_arr = [ x for x in result.split('\r\n') if not x.startswith('U-Boot>') and x != '' and x != runcmd]
+            if self.debug:
+                print('====DEBUG====')
+                print(result_arr)
+            r_get_values = "([0-9a-fA-F]{8}): ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8})    (.{16})"
+            for x in result_arr:
+                if bool(re.match(r_get_values, x)):
+                    res = re.match(r_get_values,x)
+                    firmware_bytes += b''.join([bytes.fromhex(x)[::-1] for x in res.groups()[1:5]])
+
+                    if self.debug:
+                        print(x)
+                        print(res.groups())
+                        print(firmware_bytes)
+                else:
+                    print('Found exception at device while dumping.')
+                    break
+            offset += 0x100
+        print('Saving downloaded firmware of size {} bytes to {}'.format(len(firmware_bytes),params['Path']))
+
+        f = open(params['Path'],'wb')
+        f.write(firmware_bytes)
+        f.close()
+        return {'Size': len(firmware_bytes)}
