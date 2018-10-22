@@ -1,3 +1,4 @@
+import ast
 import core.ISFFramework as ISFFramework
 import core.console.ISFConsole as ISFConsole
 
@@ -28,12 +29,15 @@ class CommandSet:
         p_type = ISFFramework.curr_module.in_params[p_name].value_type
         p_value = None
         try:
-            p_value = p_type(p_value_str)
+            if p_type in (int, float, list, dict, tuple, bool):
+                p_value = p_type(ast.literal_eval(p_value_str))
+            else:
+                p_value = p_type(p_value_str)
         except ValueError:
             ISFConsole.console_message(
                 "'%s' is not a valid value of type '%s'" % (
                     p_value_str, p_type.__name__), ISFConsole.LogLevel.ERROR)
             return
         ISFFramework.module_in_params[p_name] = p_value
-        ISFConsole.console_message("%s ==> %s" % (p_name, p_value_str),
+        ISFConsole.console_message("%s ==> %s" % (p_name, str(p_value)),
                                    ISFConsole.LogLevel.FINE)

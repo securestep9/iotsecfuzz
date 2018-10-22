@@ -1,4 +1,5 @@
 import functools
+import ast
 import sys
 from enum import Enum
 
@@ -108,6 +109,7 @@ def register_submodule(data):
     SubmoduleWrapper.author = container.author
     register_module(SubmoduleWrapper,
                     container_name + "/" + name)
+
 
 def submodule(*, name, description, in_params, out_params=None):
     def decorator(func):
@@ -240,7 +242,13 @@ def validate_params(in_params, params):
                 validated[p_name] = p_desc.default_value
         else:
             try:
-                validated[p_name] = p_desc.value_type(params[p_name])
+                if p_desc.value_type in (
+                        int, float, list, dict, tuple, bool) \
+                        and isinstance(params[p_name], str):
+                    validated[p_name] = p_desc.value_type(
+                        ast.literal_eval(params[p_name]))
+                else:
+                    validated[p_name] = p_desc.value_type(params[p_name])
             except ValueError:
                 error_message("Parameter %s has invalid type" % p_name)
                 return
