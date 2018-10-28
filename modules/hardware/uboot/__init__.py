@@ -38,8 +38,8 @@ class UBootWorker:
         self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout, exclusive=1)
         self.connected = 1
 
-    @submodule(name="TTLSendCMD",
-               description="Send and receive UART messages",
+    @submodule(name="UbootSendCMD",
+               description="Send and receive U-Boot messages",
                in_params={
                    "message": Param("Message to send not on", value_type=str, required=True),
                    "notempty": Param("Not empty answer", value_type=bool, required=False, default_value=True)
