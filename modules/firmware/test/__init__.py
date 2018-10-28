@@ -34,7 +34,7 @@ class TestContainer:
                    "T2": Param("A test param v2", value_type=int, required=True)
                },
                out_params={"ohgodwhat": Param("No idea")})
-    def test_one(self, in_params):
+    def test_two(self, in_params):
         print("Psss, these are my in parameters: ")
         print(in_params)
         print(self.connected)

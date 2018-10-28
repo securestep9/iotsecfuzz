@@ -25,8 +25,12 @@ class Param:
         self.required = required
 
 
-def get_module_instance(name):
-    return loaded_modules[name]() if name in loaded_modules else None
+def get_module_class(name):
+    return loaded_modules[name] if name in loaded_modules else None
+
+
+def get_container_class(name):
+    return container_classes[name] if name in container_classes else None
 
 
 submodule_methods = list()
@@ -60,7 +64,8 @@ class ISFContainer:
             author = self.author
 
             def __init__(self, *args, **kwargs):
-                self.get_module_instance = get_module_instance
+                self.get_module = get_module_class
+                self.get_container_class = get_container_class
                 super(ContainerWrapper, self).__init__(*args, **kwargs)
 
             def run(self, params):
@@ -168,7 +173,8 @@ class ISFModule:
             author = self.author
 
             def __init__(self, *args, **kwargs):
-                self.get_module_instance = get_module_instance
+                self.get_module_class = get_module_class
+                self.get_container_class = get_container_class
                 super(ModuleWrapper, self).__init__(*args, **kwargs)
 
             def run(self, params):
