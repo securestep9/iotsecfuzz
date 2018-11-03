@@ -4,6 +4,7 @@ import inspect
 import re
 import ctypes
 import threading
+from binascii import unhexlify
 
 
 class MacAddress:
@@ -25,6 +26,9 @@ class MacAddress:
 
     def __repr__(self):
         return self.value
+
+    def get_bytes(self):
+        return unhexlify(self.value.replace(":", ""))
 
 
 class IPv4:
