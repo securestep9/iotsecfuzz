@@ -248,7 +248,7 @@ def start(user_mode=False):
     ISFConsole.console_message(
         "Loaded %d modules" % len(list(loaded_modules.keys())),
         ISFConsole.LogLevel.FINE)
-    if "--nogui" not in sys.argv or not user_mode:
+    if "--nogui" in sys.argv or not user_mode:
         console_mode = True
         ISFConsole.console_message(
             "Console mode requested, skipping GUI initialization")
