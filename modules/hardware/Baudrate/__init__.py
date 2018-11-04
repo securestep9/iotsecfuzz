@@ -16,7 +16,7 @@ class Baudrate:
 
 
     baudrate_arr = [
-        110,
+        #110,
         300,
         600,
         1200,
@@ -39,7 +39,6 @@ class Baudrate:
 
 
     def __init__(self, in_params):
-        import serial
         self.device_path = in_params['Device']
         self.debug = in_params['Debug']
 
@@ -54,16 +53,16 @@ class Baudrate:
                },
                out_params={"Baudrate": Param("Baudrate list with the most ascii-readable chars.", value_type=list)})
     def baudrateBruteforce(self,params):
-
+        import serial
         best_percent = -1
         percents = []
 
         for baudrate in self.baudrate_arr:
             print('Baudrate: ',baudrate)
-            ans = b''
+            ans = b'\x00'
             printable = ''
             t = int(time.time())
-            self.ser = serial.Serial(port=self.device_path, baudrate=baudrate, timeout=self.timeout, exclusive=1)
+            self.ser = serial.Serial(port=self.device_path, baudrate=baudrate, timeout=self.timeout, parity=serial.PARITY_NONE)
             self.connected = 1
             while time.time() - t < params['Time']:
                 if self.debug:
