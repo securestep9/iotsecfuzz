@@ -127,29 +127,48 @@ class new_module:
 ### Использование модуля
 -----
 
-  1. Импорт
-  2. Тд
+ ##### 1. Импорт
+
+    from core import ISFFramework
+  
+ ##### 2. Пример кода
+      
+    ISFFramework.start()
+
+    a = ISFFramework.get_container_class('hardware/Baudrate')
+
+    b = a({
+    'Device': '/dev/tty.usbserial-00000000',
+    'Debug': True
+    })
+
+    baudrate = b.baudrateBruteforce({
+    'Time': 1
+    })['Baudrate'][0]
+
+    print(baudrate)
 
 ## Скриншоты
 -----
 
 ##### 1) Перехват адресов работающих на **nrf24** (`communication/NRF24/NRF24AddressFinder`)
 
-![2018-11-03_14.02.59.png](https://cdn.discordapp.com/attachments/140787642647183360/508234687932661776/2018-11-03_14.02.59.png =500x300)
+![2018-11-03_14.02.59.png](https://cdn.discordapp.com/attachments/140787642647183360/508234687932661776/2018-11-03_14.02.59.png)
  
  
 ##### 2) Поиск устройств Bluetooth (`communication/Bluetooth/BluetoothFinder`)
 
-![2018-11-02_0.17.35.png](https://media.discordapp.net/attachments/140787642647183360/507664569758515220/2018-11-02_0.17.35.png =600x200)
+![2018-11-02_0.17.35.png](https://media.discordapp.net/attachments/140787642647183360/507664569758515220/2018-11-02_0.17.35.png)
 
 ##### 3) Определяем скорость передачи данных (`communication/Baudrate/ClassicBruteforse`)
 
-![2018-10-29_22.31.43-2.png](https://cdn.discordapp.com/attachments/140787642647183360/508676230913196032/2018-10-29_22.31.43-2.png =600x600)
+![2018-10-29_22.31.43-2.png](https://cdn.discordapp.com/attachments/140787642647183360/508676230913196032/2018-10-29_22.31.43-2.png)
 
 ## Заметки
 ----
 - Фреймворк написан для python3.7 
 - Для работы некоторых модулей(wi-fi) требуется сетевая карта с возможностью перехода в режим мониторинга. 
+- Желательно наличие следующего оборудования: Arduino UNO, CrazyRadio PA и Ubertooth.
 
 
 ## Авторы
