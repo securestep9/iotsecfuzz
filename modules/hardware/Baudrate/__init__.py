@@ -1,5 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import serial,time,string
+import time,string
 
 @ISFContainer(version="1.0",
            author="Not_so_sm4rt_hom3 team")
@@ -39,6 +39,7 @@ class Baudrate:
 
 
     def __init__(self, in_params):
+        import serial
         self.device_path = in_params['Device']
         self.debug = in_params['Debug']
 

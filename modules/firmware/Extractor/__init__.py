@@ -1,5 +1,4 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import binwalk
 
 
 #https://github.com/ReFirmLabs/binwalk/blob/master/API.md
@@ -25,6 +24,7 @@ class Extractor:
 
     def __init__(self, in_params):
         self.debug = in_params['Debug']
+        import binwalk
 
     @submodule(name="binwalkExtractor",
                description="Extract firmware with binwalk rules.",

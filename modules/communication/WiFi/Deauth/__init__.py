@@ -23,6 +23,9 @@ class DeauthModule:
     }
 
     def __init__(self):
+        from scapy.all import sniff, conf, sendp
+        from scapy.layers.dot11 import Dot11, RadioTap, Dot11Deauth, Dot11Beacon, \
+            Dot11ProbeResp
         self.ap_list = list()
 
     def run(self, params):

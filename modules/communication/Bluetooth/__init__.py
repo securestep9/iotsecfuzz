@@ -1,9 +1,6 @@
 from core.ISFFramework import ISFContainer, submodule, Param
 
-from pyubertooth.ubertooth import Ubertooth
-from pyubertooth.bluetooth_packet import BtbbPacket
 
-import bluetooth
 #from bleep import BLEDevice
 
 
@@ -21,6 +18,10 @@ class Extractor:
     debug = False
 
     def __init__(self,params):
+        from pyubertooth.ubertooth import Ubertooth
+        from pyubertooth.bluetooth_packet import BtbbPacket
+
+        import bluetooth
         self.debug = params['Debug']
 
     def __del__(self):

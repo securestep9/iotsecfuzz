@@ -1,8 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import time, serial, re
-import matplotlib.pyplot as plt
-import numpy as np
-from mpld3 import fig_to_html
+import time, re
 
 # from modules.hardware.TTLTalker import TTLer
 
@@ -28,6 +25,10 @@ class LogicAnalyzer:
     debug = False
 
     def __init__(self, in_params):
+        import time, serial, re
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from mpld3 import fig_to_html
         self.device_path = in_params['Device']
         self.baudrate = in_params['Baudrate']
         self.timeout = in_params['Timeout']

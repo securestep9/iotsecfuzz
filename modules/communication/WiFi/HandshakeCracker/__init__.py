@@ -1,7 +1,5 @@
 from core.ISFFramework import ISFModule, Param
 from util.commons import MacAddress
-from scapy.all import sniff
-from scapy.contrib.wpa_eapol import WPA_key
 import sys, os, time, signal
 import hmac, hashlib, binascii
 
@@ -29,6 +27,8 @@ class HandshakeCrackModule:
     }
 
     def __init__(self):
+        from scapy.all import sniff
+        from scapy.contrib.wpa_eapol import WPA_key
         self.handshakes = dict()
         self.dict_path = None
         self.ssid = None

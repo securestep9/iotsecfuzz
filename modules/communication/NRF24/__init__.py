@@ -1,9 +1,6 @@
 from core.ISFFramework import ISFContainer, submodule, Param
 import time, operator
 
-
-import crazyradio
-
 from libraries.nrf.tools.lib import common
 
 @ISFContainer(version="1.0",
@@ -20,6 +17,7 @@ class NRF24:
     debug = False
 
     def __init__(self,params):
+        import crazyradio
         self.debug = params['Debug']
 
     def __del__(self):

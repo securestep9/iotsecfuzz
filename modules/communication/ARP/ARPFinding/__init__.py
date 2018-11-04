@@ -1,6 +1,5 @@
 from core.ISFFramework import ISFModule, Param
-from scapy.layers.l2 import ARP
-from scapy.all import sniff
+
 
 
 @ISFModule(name="ARPFinding",
@@ -20,6 +19,8 @@ class ARPFindingModule:
 
     def __init__(self):
         self.results = {"requests": [], "responses": []}
+        from scapy.layers.l2 import ARP
+        from scapy.all import sniff
 
     def run(self, params):
         sniff(prn=lambda *args, **kwargs:

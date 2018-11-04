@@ -1,5 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import serial,time
+import time
 
 
 #
@@ -26,6 +26,7 @@ class TTLer:
     debug = False
 
     def __init__(self, in_params):
+        import serial
         self.device_path = in_params['Device']
         self.baudrate = in_params['Baudrate']
         self.timeout = in_params['Timeout']

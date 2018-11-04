@@ -1,13 +1,12 @@
 from core.ISFFramework import ISFModule, Param
 from util.commons import IPv4
-from scapy.all import *
-from scapy.layers.l2 import ARP
 import os
 import signal
 import sys
 import threading
 import time
-
+from scapy.all import *
+from scapy.layers.l2 import ARP
 
 @ISFModule(name="ARPPoisoning",
            version="1.0",
