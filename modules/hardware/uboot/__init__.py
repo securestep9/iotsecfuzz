@@ -441,6 +441,8 @@ class UBootWorker:
             self.consoleInitializer(params)
             params['Need2Open'] = False
 
+        print('CramFSload: ',params['Path2Load'])
+
         commands = self.getCMDlist(params)['commands']
 
         if not 'cramfsload' in commands:

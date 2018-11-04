@@ -1,22 +1,16 @@
-from core.ISFFramework import ISFModule, Param
+from core.ISFFramework import ISFContainer, submodule, Param
 
 
-@ISFModule(name="golddigger",
-           version="1.0",
-           description="Finds passwords, configs & logs in the unpacked files",
-           author="Not_so_sm4rt_hom3 team")
-class ExampleModule:
+@ISFContainer(version="1.0",
+              author="Not_so_sm4rt_hom3 team")
+class goldDigger:
     in_params = {
-        "TARGET": Param("The target path", required=True),
-        "DEPTH": Param("Nested folder lookup level", value_type=int,
-                       required=True, default_value=3),
-        "VERBOSE": Param("Use verbose output", required=False)
+        "Debug": Param("Use verbose output", required=False, value_type=bool, default_value=False)
     }
 
     out_params = {
-        "TEST": Param("Test out parameter")
+        "status": Param("Request status", value_type=int)
     }
 
-    def run(self, params):
-        print(params["TARGET"])
-        return {"TEST": "yay"}
+    def __init__(self,params):
+        self.debug = params['Debug']

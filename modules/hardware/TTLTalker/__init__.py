@@ -35,6 +35,10 @@ class TTLer:
         if self.connected:
             self.ser.close()
 
+    def first_connect(self):
+        self.ser = serial.Serial(port=self.device_path, baudrate=self.baudrate, timeout=self.timeout, exclusive=1)
+        self.connected = 1
+
     @submodule(name="sendRawCMDTTL",
                description="Send RAW cmd through ttl",
                in_params={

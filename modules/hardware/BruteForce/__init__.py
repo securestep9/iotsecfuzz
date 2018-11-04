@@ -1,5 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import serial,time
+
 # from modules.hardware.TTLTalker import TTLer
 
 @ISFContainer(version="1.0",
@@ -13,14 +13,13 @@ class BruteForce:
     }
 
     out_params = {
-        "TEST": Param("Test out parameter")
+        "status": Param("Request status", value_type=int)
     }
 
     baudrate = 115200
     device_path = ''
     connected = 0
     timeout = 0.1
-    TTLTalker_obj = ''
     debug = False
     readyConsole = False
 
@@ -29,7 +28,7 @@ class BruteForce:
         self.baudrate = in_params['Baudrate']
         self.timeout = in_params['Timeout']
         self.debug = in_params['Debug']
-        TTLTalker_obj = self.get_module_instance('hardware/TTLTalker/sendRawCMDTTL',in_params)
+        self.TTLTalker_obj = self.get_container_class('hardware/TTLTalker')(in_params)
 
     def __del__(self):
         if self.connected:
@@ -40,9 +39,9 @@ class BruteForce:
 
 
     @submodule(name="logpassTTLbruter",
-               description="Bruteforce TTL auth form",
+               description="Bruteforce auth ttl form.",
                in_params={
-                   "UsersPath": Param("Path to users wordlist", required=False, default_value='', value_type=str),
+                   "UsersPath": Param("Path to user wordlist", required=False, default_value='', value_type=str),
                    "Username": Param("Target username", required=False, default_value='admin', value_type=str),
                    "PassPath": Param("Path to pass wordlist", required=True, default_value='', value_type=str),
                    "WrongStr": Param("Wrong password substring", required=True, default_value='', value_type=str),
@@ -69,8 +68,8 @@ class BruteForce:
 
         for user in usernames:
             for password in passwords:
-                auth_login = self.TTLTalker_obj({'message': user+splitter})['response']
-                pass_login = self.TTLTalker_obj({'message':password+splitter})['response']
+                auth_login = self.TTLTalker_obj.sendRawCMD({'message': user+splitter})['response']
+                pass_login = self.TTLTalker_obj.sendRawCMD({'message':password+splitter})['response']
                 if not params["WrongStr"] in pass_login:
                     print('Login "{}" and password "{}" are correct!'.format(user,password))
                     amount += 1
