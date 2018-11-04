@@ -5,7 +5,7 @@ from scapy.contrib.wpa_eapol import WPA_key
 import sys, os, time, signal
 import hmac, hashlib, binascii
 
-pbkdf2_ctypes = __import__("pbkdf2_ctypes")
+pbkdf2_ctypes = None#__import__("pbkdf2_ctypes")
 from multiprocessing import Pool, Queue, cpu_count
 from threading import Thread
 from binascii import unhexlify

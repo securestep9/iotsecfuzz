@@ -62,9 +62,13 @@ def register_command(cls, names):
 
 def console_message(msg, level=LogLevel.ALL):
     prefix = ["*", "+", "-"]
-    colors = ["cyan", "green", "red"]
-    cprint("[%s] " % prefix[level.value], color=colors[level.value], end="")
-    print(msg)
+    if not ISFFramework.console_mode:
+        print("[%s] %s" % (prefix[level.value], msg))
+    else:
+        colors = ["cyan", "green", "red"]
+        cprint("[%s] " % prefix[level.value], color=colors[level.value], end="")
+        print(msg)
+
 
 
 def run_console():

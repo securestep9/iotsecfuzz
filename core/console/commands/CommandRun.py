@@ -19,6 +19,8 @@ class CommandRun:
             try:
                 out = ISFFramework.curr_module.run(
                     ISFFramework.module_in_params)
+            except KeyboardInterrupt:
+                pass
             except Exception as e:
                 ISFConsole.console_message(
                     "Error encountered while running module: %s" % str(e),

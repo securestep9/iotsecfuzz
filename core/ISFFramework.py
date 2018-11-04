@@ -4,6 +4,7 @@ import sys
 from enum import Enum
 
 import core.console.ISFConsole as ISFConsole
+import core.ISFGui as ISFGui
 import util.commons as commons
 from util.events import EventEmitter
 from util.exceptions import *
@@ -188,31 +189,9 @@ class ISFModule:
         return ModuleWrapper
 
 
-class ISFGui:
-
-    def __init__(self, *, module_name):
-        if state != State.LOADING_GUI:
-            raise InvalidStateException(("Can only load modules while in %s " +
-                                         "state (current state is %s)") % (
-                                            State.LOADING_GUI.name, state.name))
-        self.module_name = module_name
-
-    def __call__(self, cls):
-
-        if self.module_name not in loaded_modules:
-            raise NoSuchModuleException("No module named %s" % self.module_name)
-
-        class GuiWrapper(cls):
-            module_name = self.module_name
-
-        register_gui(GuiWrapper, self.module_name)
-        return GuiWrapper
-
-
 module_in_params = dict()
 
 loaded_modules = dict()
-loaded_gui_classes = dict()
 curr_module = None
 console_mode = False
 
@@ -220,6 +199,8 @@ state = State.LOADING_MODULES
 
 
 def error_message(msg):
+    if not console_mode:
+        ISFGui.show_error_msg(msg)
     ISFConsole.console_message(msg, ISFConsole.LogLevel.ERROR)
 
 
@@ -228,13 +209,6 @@ def register_module(wrapper_cls, module_name):
         raise ModuleLoadingException(
             "Module %s is already loaded" % module_name)
     loaded_modules[module_name] = wrapper_cls
-
-
-def register_gui(wrapper_cls, module_name):
-    if module_name in loaded_gui_classes:
-        raise GuiLoadingException(
-            "GUI for module %s is already loaded" % module_name)
-    loaded_gui_classes[module_name] = wrapper_cls
 
 
 def validate_params(in_params, params):
@@ -262,10 +236,10 @@ def validate_params(in_params, params):
 
 
 def build_gui():
-    pass
+    ISFGui.build_gui()
 
 
-def start():
+def start(user_mode=False):
     global state, console_mode
     ISFConsole.console_message("Starting IoTSecFuzz Framework")
     ISFConsole.console_message("Fetching modules")
@@ -274,20 +248,15 @@ def start():
     ISFConsole.console_message(
         "Loaded %d modules" % len(list(loaded_modules.keys())),
         ISFConsole.LogLevel.FINE)
-    if "--nogui" not in sys.argv:
+    if "--nogui" not in sys.argv or not user_mode:
         console_mode = True
         ISFConsole.console_message(
             "Console mode requested, skipping GUI initialization")
     else:
         state = State.LOADING_GUI
         ISFConsole.console_message("Loading GUI")
-        commons.load_modules_from_directory("gui")
-        ISFConsole.console_message(
-            "Loaded %d GUI classes" % len(list(loaded_gui_classes.keys())),
-            ISFConsole.LogLevel.FINE)
+        build_gui()
     state = State.READY
-    if console_mode:
+    if console_mode and user_mode:
         ISFConsole.register_commands()
         ISFConsole.run_console()
-    else:
-        build_gui()

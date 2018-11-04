@@ -17,3 +17,6 @@ class InvalidStateException(Exception):
 class NoSuchModuleException(Exception):
     pass
 
+
+class ModuleInterruptException(BaseException):
+    pass

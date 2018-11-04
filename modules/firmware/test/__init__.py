@@ -12,7 +12,8 @@ class TestContainer:
 
     in_params = {
         "TARGET": Param("The target path", required=True),
-        "VERBOSE": Param("Use verbose output", default_value=False,
+        "VERBOSE": Param("Use verbose output", value_type=bool,
+                         default_value=False,
                          required=False)
     }
 
@@ -38,4 +39,6 @@ class TestContainer:
         print("Psss, these are my in parameters: ")
         print(in_params)
         print(self.connected)
+        while True:
+            pass
         return {"ohgodwhat": in_params["T2"] * 4}

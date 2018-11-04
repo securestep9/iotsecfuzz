@@ -20,6 +20,6 @@ class ExampleModule:
             "TARGET": params["TARGET"],
             "VERBOSE": True
         })
-        out1 = test_container.test_one({"T1": 10})
+        out1 = test_container.test_one({"T1": "kek"})
         out1.update(test_container.test_two({"T2": 10}))
         return out1
