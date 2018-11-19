@@ -4,6 +4,7 @@ import sys
 from enum import Enum
 
 import core.console.ISFConsole as ISFConsole
+import core.ISFProfiles as ISFProfiles
 import core.ISFGui as ISFGui
 import util.commons as commons
 from util.events import EventEmitter
@@ -160,7 +161,9 @@ class ISFModule:
             raise ModuleLoadingException(("Module '%s' does not " +
                                           "provide input parameters list")
                                          % self.name)
-
+        for pname, pvalue in cls.in_params.items():
+            default_profile[cls.__module__.replace(".", "/") + ":" + pname] = \
+                pvalue.default_value if pvalue.default_value else None
         if hasattr(cls, "out_params") and not isinstance(
                 cls.out_params, dict):
             raise ModuleLoadingException(("Module '%s' does not "
@@ -193,7 +196,10 @@ module_in_params = dict()
 
 loaded_modules = dict()
 curr_module = None
+curr_profile = None
 console_mode = False
+
+default_profile = dict()
 
 state = State.LOADING_MODULES
 
@@ -239,6 +245,34 @@ def build_gui():
     ISFGui.build_gui()
 
 
+def use_profile(name):
+    global curr_profile
+    if name not in ISFProfiles.loaded_profiles:
+        raise ProfileNotFoundException("Profile '%s' does not exist")
+    curr_profile = ISFProfiles.loaded_profiles[name]
+    for key, value in curr_profile.presets.items():
+        module_name = key.split(":")[0]
+        param_name = key.split(":")[1]
+        if module_name not in loaded_modules:
+            raise ModuleNotFoundError("No module named '%s'" % module_name)
+        cls = loaded_modules[module_name]
+        if param_name not in cls.in_params:
+            ISFConsole.console_message(
+                "Module %s does not have in parameter %s, skipping" % (
+                    module_name, param_name), ISFConsole.LogLevel.ERROR)
+        else:
+            cls.in_params[param_name].default_value = value
+
+
+def unset_profile():
+    global curr_profile
+    curr_profile = None
+    for key, value in default_profile.items():
+        module_name = key.split(":")[0]
+        param_name = key.split(":")[1]
+        loaded_modules[module_name].in_params[param_name].default_value = value
+
+
 def start(user_mode=False):
     global state, console_mode
     ISFConsole.console_message("Starting IoTSecFuzz Framework")
@@ -247,6 +281,11 @@ def start(user_mode=False):
     register_submodules()
     ISFConsole.console_message(
         "Loaded %d modules" % len(list(loaded_modules.keys())),
+        ISFConsole.LogLevel.FINE)
+    ISFConsole.console_message("Loading profiles")
+    ISFProfiles.load_profiles()
+    ISFConsole.console_message(
+        "Loaded %d profiles" % len(list(ISFProfiles.loaded_profiles.keys())),
         ISFConsole.LogLevel.FINE)
     if "--nogui" in sys.argv or not user_mode:
         console_mode = True

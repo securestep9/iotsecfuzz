@@ -44,6 +44,7 @@ class ISFConsoleCommand:
 commands = dict()
 command_classes = list()
 curr_module_name = None
+curr_profile_name = None
 
 
 def register_commands():
@@ -70,7 +71,6 @@ def console_message(msg, level=LogLevel.ALL):
         print(msg)
 
 
-
 def run_console():
     global curr_module_name
     while True:
@@ -78,6 +78,13 @@ def run_console():
         if ISFFramework.curr_module:
             print("(", end="")
             cprint(curr_module_name, color="yellow", end="")
+        elif ISFFramework.curr_profile:
+            print("(", end="")
+            cprint("~", color="yellow", end="")
+        if ISFFramework.curr_profile:
+            print("@", end="")
+            cprint(curr_profile_name, color="red", end="")
+        if ISFFramework.curr_module or ISFFramework.curr_profile:
             print(") ", end="")
         print("> ", end="")
         user_input = input().split()

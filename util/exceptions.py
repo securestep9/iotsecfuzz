@@ -20,3 +20,11 @@ class NoSuchModuleException(Exception):
 
 class ModuleInterruptException(BaseException):
     pass
+
+
+class ProfileNotFoundException(Exception):
+    pass
+
+
+class PresetsAlreadyPresentException(Exception):
+    pass

@@ -194,7 +194,7 @@ def build_module_window(module_name):
             row=i, column=3, padx=10, pady=3, sticky="w")
         i += 1
         curr_module_input[pname] = comp
-    if cls.out_params:
+    if hasattr(cls, "out_params"):
         for pname, pvalue in cls.out_params.items():
             Label(module_window, text=pname, font="Courier 10 bold").grid(
                 row=j, column=5, padx=10, pady=3, sticky="w")
