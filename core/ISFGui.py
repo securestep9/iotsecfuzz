@@ -4,8 +4,8 @@ from tkinter.ttk import *
 import core.ISFFramework as ISFFramework
 from util.commons import async_raise
 from util.exceptions import ModuleInterruptException
-from threading import Thread
-import sys
+import matplotlib
+matplotlib.use('TkAgg')
 
 
 class StdoutRedirector(type(sys.__stdout__)):
@@ -46,9 +46,9 @@ log = None
 def build_tree(window):
     global folder_img, module_img
     if not folder_img:
-        folder_img = PhotoImage(file="assets/images/folder.png")
+        folder_img = PhotoImage(file="assets/images/folder.gif")
     if not module_img:
-        module_img = PhotoImage(file="assets/images/module.png")
+        module_img = PhotoImage(file="assets/images/module.gif")
     t = Treeview(window)
     t.heading("#0", text="Modules")
     nodes = dict()
@@ -274,8 +274,8 @@ def build_gui():
     root = Tk()
     root.title("IoTSecFuzz Framework")
     root.iconbitmap("assets/images/icon.ico")
-    run_img = PhotoImage(file="assets/images/run.png")
-    stop_img = PhotoImage(file="assets/images/stop.png")
+    run_img = PhotoImage(file="assets/images/run.gif")
+    stop_img = PhotoImage(file="assets/images/stop.gif")
     global tree, console, module_window
     main_window = Panedwindow(orient=HORIZONTAL)
     main_window.pack(fill=BOTH, expand=1)
