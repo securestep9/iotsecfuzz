@@ -1,5 +1,5 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-
+import binwalk
 
 #https://github.com/ReFirmLabs/binwalk/blob/master/API.md
 #https://github.com/ReFirmLabs/binwalk/wiki/Scripting-With-the-Python-API
@@ -9,7 +9,7 @@ from core.ISFFramework import ISFContainer, submodule, Param
 class Extractor:
     in_params = {
         "FirmwareBINPath": Param("Path to memory dump (with firmware).", required=True),
-        "FirmwareSavePath": Param("Path to save extracted firmware.", required=False, ),
+        "FirmwareSavePath": Param("Path to save extracted firmware.", required=True, ),
         "Debug": Param("Use verbose output", required=False, value_type=bool, default_value=False)
     }
 
@@ -24,7 +24,6 @@ class Extractor:
 
     def __init__(self, in_params):
         self.debug = in_params['Debug']
-        import binwalk
 
     @submodule(name="binwalkExtractor",
                description="Extract firmware with binwalk rules.",

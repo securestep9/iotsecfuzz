@@ -1,5 +1,6 @@
 from core.ISFFramework import ISFContainer, submodule, Param
-import time,string,re,os
+import time,string,re,os,serial
+from modules.hardware.uboot.cli_prefix import PREFIX_ARRAY
 
 @ISFContainer(version="1.0",
            author="Not_so_sm4rt_hom3 team")
@@ -54,21 +55,33 @@ class UBootWorker:
         if self.debug:
             print([cmd])
         if self.connected:
-            for x in range(10):
-                self.ser.write(b'\r\n'*3)
-            for x in range(3):
-                self.ser.read(100)
+            #TODO: problems with repeated output
+            #for x in range(10):
+            #    self.ser.write(b'\r\n'*1)
+            #for x in range(3):
+            #    self.ser.read(100)
             self.ser.write(cmd.encode('ascii')+b'\r\n')
             time.sleep(self.timeout)
             ans = self.ser.read(10000)
             if self.debug:
-                print('Serial response:',ans.decode('ascii'))
-            while (not ans.decode('ascii').endswith('U-Boot> ')) and (params['notempty']==True):
+                try:
+                    print('Serial response:',"".join(map(chr, ans)))
+                except:
+                    pass
+                    #TODO:fix
+            #problem with another prefix
+            tmp = b'123'
+            #OLD
+            #while (not (("".join(map(chr, ans)).endswith('U-Boot> ')) or ("".join(map(chr, ans)).endswith('HKVS # '))) and (params['notempty']==True)) and tmp != b'':
+            while ((not(sum(["".join(map(chr, ans)).endswith(x) for x in PREFIX_ARRAY]))) and (params['notempty']==True)) and tmp != b'':
+                if self.debug:
+                    print('Ends with:',ans)
                 print('Retrying to read')
                 time.sleep(self.timeout)
-                ans = self.ser.read(10000)
+                tmp = self.ser.read(10000)
+                ans += tmp
 
-        return {'result': ans.decode('ascii')}
+        return {'result': "".join(map(chr, ans))}
 
     @submodule(name="UbootOnOff",
                    description="Turn on U-Boot console",
@@ -113,7 +126,15 @@ class UBootWorker:
         result = self.sendCMD(params)['result']
         if self.debug:
             print(result)
-        ans = result.split('U-Boot>')[0].split('printenv\r\n')[1]
+        ans = ''
+        for x in PREFIX_ARRAY:
+            try:
+                ans = result.split(x)[0].split('printenv\r\n')[1]
+            except:
+                pass
+        if ans == '':
+            return {'status':-1}
+
         arr = ans.split('\r\n')
         vec = {}
         if self.debug:
@@ -142,7 +163,14 @@ class UBootWorker:
             result = self.sendCMD(params)['result']
             if self.debug:
                 print('Result:',result)
-            ans = result.split('U-Boot>')[0].split('version\r\n\r\n')[1]
+            ans = ''
+            for x in PREFIX_ARRAY:
+                try:
+                   ans = result.split(x)[0].split('version\r\n\r\n')[1]
+                except:
+                    pass
+            if ans == '':
+                return {'status':-1}
         return {'version':ans}
 
     @submodule(name="getUbootCMDs",
@@ -162,7 +190,14 @@ class UBootWorker:
             result = self.sendCMD(params)['result']
             if self.debug:
                 print('Result:',result)
-            ans_str = result.split('U-Boot>')[0].split('help\r\n')[1]
+            ans_str = ''
+            for x in PREFIX_ARRAY:
+                try:
+                    ans_str = result.split(x)[0].split('help\r\n')[1]
+                except:
+                    pass
+            if ans_str=='':
+                return {'status':-1}
             m = ans_str.split('\r\n')
             for x in m:
                 ans[x.split('-')[0].replace(' ','')] = '-'.join([ y.strip().replace('  ',' ') for y in x.split('-')[1:]])
@@ -221,6 +256,9 @@ class UBootWorker:
             self.consoleInitializer(params)
             params['Need2Open'] = False
 
+        params['message'] = '\r\n'
+        result = self.sendCMD(params)['result']
+
 
         offset = params['Offset'] - (params['Offset'] % 0x100)
         memory_bytes = b''
@@ -228,7 +266,7 @@ class UBootWorker:
             # считываем
             while offset - params['Offset'] < params['Length'] + (params['Offset'] % 0x100):
                 print("Reading memory from {} to {}".format(hex(offset), hex(offset + 0x100)))
-                runcmd = 'md.l ' + hex(offset)
+                runcmd = ' md.l ' + hex(offset)
 
                 if self.debug:
                     print(runcmd)
@@ -239,7 +277,7 @@ class UBootWorker:
                     print('====DEBUG====')
                     print(result)
 
-                result_arr = [x for x in result.split('\r\n') if not x.startswith('U-Boot>') and x != '' and x != runcmd]
+                result_arr = [x for x in result.split('\r\n') if not sum([x.endswith(y) for y in PREFIX_ARRAY]) and not x.startswith('md.l') and x != '' and x != runcmd]
                 if self.debug:
                     print('====DEBUG====')
                     print(result_arr)
@@ -252,7 +290,7 @@ class UBootWorker:
                         if self.debug:
                             print(x)
                             print(res.groups())
-                            print(memory_bytes)
+                            print('Memory bytes:',memory_bytes)
                     else:
                         print('Found exception at device while dumping memory.')
                         break

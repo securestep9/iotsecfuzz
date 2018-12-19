@@ -7,6 +7,8 @@ pbkdf2_ctypes = None#__import__("pbkdf2_ctypes")
 from multiprocessing import Pool, Queue, cpu_count
 from threading import Thread
 from binascii import unhexlify
+from scapy.all import sniff
+from scapy.contrib.wpa_eapol import WPA_key
 
 WPA_KEY_INFO_INSTALL = 64
 WPA_KEY_INFO_ACK = 128
@@ -19,24 +21,22 @@ WPA_KEY_INFO_MIC = 256
            author="Not_so_sm4rt_hom3 team")
 class HandshakeCrackModule:
     in_params = {
-        "iface": Param("Target network interface", required=True),
-        "ssid": Param("Target AP name", required=True),
+        "iface": Param("Target network interface", required=True, value_type=str),
+        "ssid": Param("Target AP name", required=True ,value_type=str),
         "ssid_mac": Param("SSID MAC address", value_type=MacAddress,
                           required=True),
-        "dict_path": Param("Dictionary to bruteforce PSK", required=True)
+        "dict_path": Param("Dictionary to bruteforce PSK", required=True, value_type=str)
     }
 
     def __init__(self):
-        from scapy.all import sniff
-        from scapy.contrib.wpa_eapol import WPA_key
         self.handshakes = dict()
         self.dict_path = None
         self.ssid = None
         self.ssid_mac = None
         self.handshake = None
         self.found_password = False
-        self.word_queue = Queue(maxsize=1000000)
-        self.result_queue = Queue(maxsize=1000000)
+        self.word_queue = Queue()
+        self.result_queue = Queue()
         self.result_word = None
 
     @staticmethod
