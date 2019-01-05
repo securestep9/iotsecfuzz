@@ -1,6 +1,6 @@
 from core.ISFFramework import ISFContainer, submodule, Param
 import time
-import serial
+import serial,binascii
 
 
 #
@@ -50,9 +50,11 @@ class TTLer:
         if self.connected == 0:
             self.first_connect()
         ans = ''
-        cmd = params['message']
+        cmd = params['raw_message']
+        self.ser.write(bytes.fromhex(cmd))
         time.sleep(self.timeout)
-        ans = self.ser.read(10000).decode('ascii')
+        ans = self.ser.read(10000)
+        ans = "".join(map(chr, ans))
         if self.debug:
             print('Serial response:', ans)
 
