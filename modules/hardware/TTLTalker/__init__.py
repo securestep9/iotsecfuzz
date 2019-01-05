@@ -43,18 +43,16 @@ class TTLer:
     @submodule(name="sendRawCMDTTL",
                description="Send RAW cmd through ttl",
                in_params={
-                   "raw_message": Param("Raw message to send by UART in hex", default_value='', value_type=str, required=True)
+                   "raw_message": Param("Raw message to send by UART", default_value='')
                },
                out_params={"Success": Param("Result status", value_type=bool)})
     def sendRawCMD(self, params):
         if self.connected == 0:
             self.first_connect()
         ans = ''
-        cmd = bytes.fromhex(params["raw_message"])
-        ans = self.ser.write(cmd)
+        cmd = params['message']
         time.sleep(self.timeout)
-        ans = self.ser.read(10000)
-        ans = "".join(map(chr, ans))
+        ans = self.ser.read(10000).decode('ascii')
         if self.debug:
             print('Serial response:', ans)
 
