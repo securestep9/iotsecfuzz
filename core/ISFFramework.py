@@ -56,10 +56,11 @@ class ISFContainer:
             raise ModuleLoadingException(("Container '%s' does not " +
                                           "provide input parameters list")
                                          % cls.__name__)
-        if cls.__module__.startswith("modules"):
-            raise ModuleLoadingException(
-                "DO NOT IMPORT ISF MODULES DIRECTLY " +
-                "- USE self.get_module_instance(name) INSTEAD")
+
+        # if cls.__module__.startswith("modules"):
+        #     raise ModuleLoadingException(
+        #         "DO NOT IMPORT ISF MODULES DIRECTLY " +
+        #         "- USE self.get_module_instance(name) INSTEAD")
 
         class ContainerWrapper(cls, EventEmitter):
             version = self.version
@@ -104,7 +105,7 @@ def register_submodule(data):
 
         out_params = out_p
 
-        def run(self, in_params_):
+        def run(self, in_params_={}):
             validated = validate_params(in_p, in_params_)
             if validated:
                 c = container(validated)
@@ -126,7 +127,9 @@ def submodule(*, name, description, in_params, out_params=None):
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
+            return loaded_modules[
+                func.__module__.replace(".", "/") + "/" + name].run(*args,
+                                                                    **kwargs)  # func(*args, **kwargs)
 
         return wrapper
 
@@ -181,7 +184,7 @@ class ISFModule:
                 self.get_container_class = get_container_class
                 super(ModuleWrapper, self).__init__(*args, **kwargs)
 
-            def run(self, params):
+            def run(self, params={}):
                 validated = validate_params(
                     super(ModuleWrapper, self).in_params, params)
                 if validated:
