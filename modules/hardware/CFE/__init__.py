@@ -73,8 +73,9 @@ class CFEworker:
                out_params={"commands": Param("CMD dictionary", value_type=dict)}
               )
     def getCMDList(self,params):
-        if params["Need2Open"]:
+        if params["Need2Open"] and self.readyConsole==False:
             self.initConnect(params)
+        self.readyConsole = True
         uart_container = self.uart_class(params)
         out = uart_container.sendRawCMD({"raw_message": str(binascii.hexlify(b'help\r\n'), 'ascii')})
         m = out["response"].replace('\r','').split('\n')
@@ -103,9 +104,10 @@ class CFEworker:
                },
                out_params={"devices": Param("Device list(dictionary)", value_type=dict)}
                )
-    def getDevice(self, params):
-        if params["Need2Open"]:
+    def getDeviceList(self, params):
+        if params["Need2Open"] and self.readyConsole==False:
             self.initConnect(params)
+        self.readyConsole = True
         uart_container = self.uart_class(params)
         out = uart_container.sendRawCMD({"raw_message": str(binascii.hexlify(b'show devices\r\n'), 'ascii')})
         m = out["response"].replace('\r','').split('\n')
@@ -124,3 +126,55 @@ class CFEworker:
                     devices[re.match(reg_devices, x).groups()[0]] = re.match(reg_devices, x).groups()[1]
 
         return {'devices':devices}
+
+    @submodule(name="WriteDevice2Flash",
+           description="Uses 'load' command for writing filesystem to flash memory.",
+           in_params={
+               "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,
+                                  default_value=True),
+               "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
+                                 default_value=str(binascii.hexlify(b'stop'), 'ascii')),
+               "memory_device" :Param("Memory device name", value_type=str, required=True,
+                                 default_value="flash0"),
+               "offset":Param("Address of flash offset", value_type=int, required=False,
+                                 default_value=0x40000),
+               "size":Param("Memory size", value_type=int, required=False,
+                                 default_value=0x40000)
+           },
+           out_params={"size": Param("Size of readed memory", value_type=int)}
+           )
+    def WriteDevice2Flash(self,params):
+        if params["Need2Open"] and self.readyConsole==False:
+            self.initConnect(params)
+        self.readyConsole = True
+        devices = self.getDeviceList(params)['devices']
+        if not params['memory_device'] in devices:
+            print('Device not found!')
+            return {'status':1}
+        else:
+            if not 'size' in devices[params['memory_device']]:
+                print('Device is not a type of memory')
+                return {'status':1}
+
+        cmd = 'load -raw -max={} -addr={} {}:\r\n'.format(params['size'],hex(params['offset']),params['memory_device'])
+        t = params['Timeout']
+        params['Timeout'] = 5
+        uart_container = self.uart_class(params)
+        print('Writing dump to flash memory! 5 sec...')
+        out = uart_container.sendRawCMD({"raw_message": cmd.encode("utf-8").hex()})
+        params['Timeout'] = t
+        m = out["response"].replace('\r', '').split('\n')
+        if self.debug:
+            print(m)
+
+        size = 0 #bytes
+        for x in m:
+                if 'bytes read' in x:
+                    size = int(x.split(' ')[len(x.split(' '))-3])
+        status = 0
+        if size==0:
+            status=1
+            print('Zero size of file -> read/write error')
+        return {'status':status,'size':size}
+
+
