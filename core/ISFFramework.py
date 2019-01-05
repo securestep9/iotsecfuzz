@@ -66,10 +66,11 @@ class ISFContainer:
             version = self.version
             author = self.author
 
-            def __init__(self, *args, **kwargs):
+            def __init__(self, params):
                 self.get_module = get_module_class
                 self.get_container_class = get_container_class
-                super(ContainerWrapper, self).__init__(*args, **kwargs)
+                self._params = params
+                super(ContainerWrapper, self).__init__(params)
 
             def run(self, params):
                 validated = validate_params(
@@ -98,6 +99,7 @@ def register_submodule(data):
     in_p = dict()
     in_p.update(container.in_params)
     in_p.update(in_params)
+    func._in_params = in_p
     out_p = out_params if out_params else dict()
 
     class SubmoduleWrapper(EventEmitter):
@@ -126,10 +128,10 @@ def submodule(*, name, description, in_params, out_params=None):
              in_params, out_params])
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return loaded_modules[
-                func.__module__.replace(".", "/") + "/" + name].run(*args,
-                                                                    **kwargs)  # func(*args, **kwargs)
+        def wrapper(self, params={}):
+            validated = validate_params(func._in_params, params)
+            if validated:
+                return func(self, validated)  # func(*args, **kwargs)
 
         return wrapper
 
@@ -151,10 +153,10 @@ class ISFModule:
         self.author = author
 
     def __call__(self, cls):
-        if cls.__module__.startswith("modules"):
-            raise ModuleLoadingException(
-                "DO NOT IMPORT ISF MODULES DIRECTLY " +
-                "- USE self.get_module_instance(name) INSTEAD")
+      # if cls.__module__.startswith("modules"):
+      #     raise ModuleLoadingException(
+      #         "DO NOT IMPORT ISF MODULES DIRECTLY " +
+      #         "- USE self.get_module_instance(name) INSTEAD")
         if not hasattr(cls, "run") or not callable(cls.run):
             raise ModuleLoadingException(
                 ("Module '%s' does not " +
