@@ -177,4 +177,43 @@ class CFEworker:
             print('Zero size of file -> read/write error')
         return {'status':status,'size':size}
 
-
+    @submodule(name="GetDRAM",
+               description="Get information about DRAM memory.",
+               in_params={
+                   "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,
+                                      default_value=True),
+                   "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
+                                     default_value=str(binascii.hexlify(b'stop'), 'ascii')),
+                   "ShowAll": Param("Show not only available ", value_type=bool, required=False,
+                                     default_value=False)
+               },
+               out_params={"memory": Param("Size of readed memory", value_type=list)}
+               )
+    def getDRAMinfo(self,params):
+        if params["Need2Open"] and self.readyConsole==False:
+            self.initConnect(params)
+        self.readyConsole = True
+        uart_container = self.uart_class(params)
+        if params['ShowAll']:
+            out = uart_container.sendRawCMD({"raw_message": str(binascii.hexlify(b'show memory -a\r\n'), 'ascii')})
+        else:
+            out = uart_container.sendRawCMD({"raw_message": str(binascii.hexlify(b'show memory\r\n'), 'ascii')})
+        m = out["response"].replace('\r','').split('\n')
+        start = 0
+        result = []
+        memory_reg = '([0-9a-fA-F]{12})\-([0-9a-fA-F]{12}) \(([0-9a-fA-F]{12})\) (.+)'
+        for x in m:
+            if x.startswith('-'*5) and start==0:
+                start=1
+            elif start==1:
+                if bool(re.match(memory_reg, x)):
+                    res_arr = re.match(memory_reg, x).groups()
+                    new_memory = {}
+                    new_memory['start'] = int(res_arr[0],16)
+                    new_memory['end'] = int(res_arr[1],16)
+                    new_memory['size'] = int(res_arr[2],16)
+                    new_memory['description'] = res_arr[3]
+                    if self.debug:
+                        print(new_memory)
+                    result.append(new_memory)
+        return {'memory':result}
