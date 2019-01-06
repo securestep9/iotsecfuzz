@@ -66,7 +66,7 @@ class CFEworker:
     @submodule(name="cmdList",
                description="Get list of commands with description.",
                in_params={
-                   "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,default_value=True),
+                   "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,default_value=True),
                    "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
                                     default_value=str(binascii.hexlify(b'stop'), 'ascii')),
                },
@@ -97,7 +97,7 @@ class CFEworker:
     @submodule(name="DeviceList",
                description="Get list of connected devices.",
                in_params={
-                   "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,
+                   "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,
                                       default_value=True),
                    "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
                                      default_value=str(binascii.hexlify(b'stop'), 'ascii')),
@@ -130,7 +130,7 @@ class CFEworker:
     @submodule(name="WriteDevice2Flash",
            description="Uses 'load' command for writing filesystem to flash memory.",
            in_params={
-               "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,
+               "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,
                                   default_value=True),
                "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
                                  default_value=str(binascii.hexlify(b'stop'), 'ascii')),
@@ -180,7 +180,7 @@ class CFEworker:
     @submodule(name="GetDRAM",
                description="Get information about DRAM memory.",
                in_params={
-                   "Need2Open": Param("Need to initiate U-Boot CLI", value_type=str, required=False,
+                   "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,
                                       default_value=True),
                    "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
                                      default_value=str(binascii.hexlify(b'stop'), 'ascii')),
@@ -217,3 +217,69 @@ class CFEworker:
                         print(new_memory)
                     result.append(new_memory)
         return {'memory':result}
+
+
+    @submodule(name="ReadFlashPage",
+               description="Read Flash memory page with 'd' command.",
+               in_params={
+                   "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,
+                                      default_value=True),
+                   "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
+                                     default_value=str(binascii.hexlify(b'stop'), 'ascii')),
+                   "addr": Param("Name of device to dump", value_type=int, required=True)
+               },
+               out_params={"dump": Param("Dump of memory page", value_type=bytearray)}
+               )
+    def readMemoryPage(self,params):
+        if params["Need2Open"] and self.readyConsole == False:
+            self.initConnect(params)
+        self.readyConsole = True
+        uart_container = self.uart_class(params)
+        cmd = 'd {}\r\n'.format(hex(params['addr']))
+        out = uart_container.sendRawCMD({"raw_message": cmd.encode("utf-8").hex()})
+        m = out["response"].replace('\r', '').split('\n')
+        if self.debug:
+            print(m)
+        r_get_values = "([0-9a-fA-F]{8}): ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8}) ([0-9a-fA-F]{8})[ ]+(.{16})"
+        h = b''
+        for x in m:
+            if bool(re.match(r_get_values, x)):
+                b = re.match(r_get_values, x).groups()
+                h += b''.join([bytes.fromhex(x)[::-1] for x in b[1:5]])
+        if self.debug:
+            print(h)
+        return {'dump':h}
+
+
+    """
+    @submodule(name="DumpDeviceMemory",
+               description="Dumping memory from specific device",
+               in_params={
+                   "Need2Open": Param("Need to initiate CFE CLI", value_type=str, required=False,
+                                      default_value=True),
+                   "init_cmd": Param("Init string in hex. Example: a1c4c6", value_type=str, required=False,
+                                     default_value=str(binascii.hexlify(b'stop'), 'ascii')),
+                   "memory_device": Param("Name of device to dump", value_type=str, required=True),
+                   "type": Param("Type of downloading (tftp, microsd, flash)", value_type=str, required=False,
+                                 default_value='flash')
+               },
+               out_params={"memory": Param("Size of readed memory", value_type=list)}
+               )
+    def dumpDeviceMemory(self,params):
+        if params["Need2Open"] and self.readyConsole==False:
+            self.initConnect(params)
+        self.readyConsole = True
+        devices = self.getDeviceList(params)['devices']
+        if not params['memory_device'] in devices:
+            print('Device not found!')
+            return {'status': 1}
+        else:
+            if not 'size' in devices[params['memory_device']]:
+                print('Device is not a type of memory')
+                return {'status': 1}
+            else:
+                device_size = int(devices[params['memory_device']].split('size ')[-1])
+                
+
+        device_memory =  devices[params['memory_device']]
+    """
