@@ -1,0 +1,21 @@
+{
+  "name": "test",
+  "description": "Simple test profile",
+  "presets_packs": {
+    "root": {
+      "description": "",
+      "origin": "~",
+      "presets": {
+        "firmware/test/test1:T1": 1337,
+        "firmware/test/test2:T2": 8888
+      }
+    },
+    "preset_test": {
+      "description": "Preset pack test",
+      "origin": "C:\\Users\\BronzeBee\\Desktop\\sony_zigbee.json",
+      "presets": {
+        "hardware/container_test:TARGET": "kek"
+      }
+    }
+  }
+}
