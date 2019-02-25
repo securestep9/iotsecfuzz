@@ -65,20 +65,10 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-# virtualenv
-venv/
-ENV/
-
-### VirtualEnv template
-# Virtualenv
-# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
+isf/modules/isf/hardware/*
+isf/modules/isf/firmware/*
+isf/modules/isf/communication/arp/*
+isf/modules/isf/communication/bluetooth/*
+isf/modules/isf/communication/nrf24/*
+isf/modules/isf/communication/wifi/*
+isf/modules/isf/communication/zigbee/*
