@@ -1,8 +1,8 @@
-import console.command
-import core
+from ..command import Command
+from ... import core
 
 
-class CommandSet(console.command.Command):
+class CommandSet(Command):
 
     def __init__(self):
         super(CommandSet, self).__init__(name='set',

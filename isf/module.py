@@ -1,8 +1,9 @@
 import inspect
-import core
-import parameter
+import sys
+from . import core
+from . import parameter
 from enum import Enum
-from util import CallbackIterator
+from .util import CallbackIterator
 
 
 class RunPolicy(Enum):

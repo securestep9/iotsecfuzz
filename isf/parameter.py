@@ -1,6 +1,6 @@
 import ast
 import logging
-import util
+from . import util
 
 logger = logging.getLogger('isf')
 

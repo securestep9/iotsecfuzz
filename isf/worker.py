@@ -2,7 +2,7 @@ import datetime
 import logging
 from enum import Enum
 from threading import Thread
-from util import async_raise as async_raise
+from .util import async_raise as async_raise
 
 logger = logging.getLogger('isf')
 

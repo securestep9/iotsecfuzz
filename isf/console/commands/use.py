@@ -1,8 +1,8 @@
-import console.command
-import core
+from ..command import Command
+from ... import core
 
 
-class CommandUse(console.command.Command):
+class CommandUse(Command):
 
     def __init__(self):
         super(CommandUse, self).__init__(name='use',

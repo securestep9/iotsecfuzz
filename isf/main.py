@@ -1,12 +1,14 @@
 import sys
 import os
 import argparse
-import core
-import console
+import logging
+from . import core
+from . import console
+
+
+sys.path.append(os.path.abspath('../'))
 
 # Parse command line arguments
-print(os.path.abspath('./'))
-sys.path.append(os.path.abspath('../'))
 
 parser = argparse.ArgumentParser(prog='IoTSecFuzz',
                                  description='IoT testing framework')
@@ -20,6 +22,7 @@ args = parser.parse_args()
 
 if args.dev:
     os.environ['DEBUG'] = '1'
+    core.logger.setLevel(logging.DEBUG)
 
 if args.paths:
     core.modules_dirs.extend(args.paths)

@@ -1,15 +1,16 @@
 import logging
 from prompt_toolkit import PromptSession
 
-import core
-from core import logger as logger, ModuleExecutionError
-from parameter import ParameterValidationError
+from .. import core
+from ..core import logger as logger, ModuleExecutionError
+from ..parameter import ParameterValidationError
 from .handler import ConsoleHandler
 from prompt_toolkit import print_formatted_text, HTML
 
 from .commands.set import CommandSet
 from .commands.use import CommandUse
 from .commands.run import CommandRun
+from .commands.list import CommandList
 
 
 commands = {}
@@ -46,6 +47,7 @@ def register_command(cmd):
 register_command(CommandSet())
 register_command(CommandUse())
 register_command(CommandRun())
+register_command(CommandList())
 
 
 # Prints the banner
@@ -72,7 +74,6 @@ def print_banner():
 def start():
     session = PromptSession()
     print_banner()
-    logger.info('Fetching modules')
     try:
         core.load_modules()
     except Exception as e:

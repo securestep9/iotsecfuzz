@@ -1,8 +1,8 @@
-import console.command
-import core
+from ..command import Command
+from ... import core
 
 
-class CommandRun(console.command.Command):
+class CommandRun(Command):
 
     def __init__(self):
         super(CommandRun, self).__init__(name='run',

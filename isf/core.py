@@ -1,10 +1,10 @@
 import os
 import logging
 import semver
-import module
-from worker import Worker
-from parameter import ParameterValidationError
-from isfpm.manifest import load_manifest
+from . import module
+from .worker import Worker
+from .parameter import ParameterValidationError
+from .isfpm.manifest import load_manifest
 
 
 # Thrown if error occurs during module initialization
@@ -24,16 +24,14 @@ LOGGING_FORMAT = '[%(asctime)s %(levelname)s]: %(message)s'
 # Log time as dd-Mon-yyyy hh:mm:ss
 LOGGING_DATE_FORMAT = '%H:%M:%S'
 
+
 # Apply the config
-logging.basicConfig(format=LOGGING_FORMAT, datefmt=LOGGING_DATE_FORMAT)
+logging.basicConfig(
+    level=(logging.DEBUG if os.getenv('DEBUG') else logging.INFO),
+    format=LOGGING_FORMAT, datefmt=LOGGING_DATE_FORMAT)
 
 # Create the logger
 logger = logging.getLogger('isf')
-
-if os.getenv('DEBUG'):
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
 
 # Default path to load modules from
 MODULES_DIR = os.path.join(
@@ -53,8 +51,9 @@ def collect_modules_from_directory(modules_dir):
     :param modules_dir: base path to look for modules at
     :return:
     """
-    categories_paths = [os.path.join(modules_dir, 'isf', *p.split('/')) for p in
-                        module.CATEGORIES]
+    categories_paths = filter(lambda f: os.path.isdir(f),
+                              [os.path.join(modules_dir, 'isf', *p.split('/'))
+                               for p in module.CATEGORIES])
     result = {}
     for category_dir in categories_paths:
         dirs = filter(lambda f: os.path.isdir(f),

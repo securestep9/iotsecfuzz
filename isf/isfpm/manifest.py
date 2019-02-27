@@ -1,9 +1,9 @@
 import json
 import re
 from semver import parse, valid_range
-from isfpm.schema import validate
-import module
-import parameter
+from .schema import validate
+from .. import module
+from .. import parameter
 
 # TODO custom validation replace with JSON Schema
 
