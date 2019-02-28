@@ -72,3 +72,4 @@ isf/modules/isf/communication/bluetooth/*
 isf/modules/isf/communication/nrf24/*
 isf/modules/isf/communication/wifi/*
 isf/modules/isf/communication/zigbee/*
+!.gitkeep
