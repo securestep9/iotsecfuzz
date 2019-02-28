@@ -1,3 +1,5 @@
+import pkgutil
+import sys
 import threading
 import inspect
 import re
@@ -106,14 +108,14 @@ class CallbackIterator:
 def async_raise(thread_obj, exception):
     target_tid = thread_obj.ident
     if target_tid not in {thread.ident for thread in threading.enumerate()}:
-        raise ValueError("Invalid thread object")
+        raise ValueError('Invalid thread object')
 
     affected_count = ctypes.pythonapi.PyThreadState_SetAsyncExc(
         ctypes.c_long(target_tid), ctypes.py_object(exception))
 
     if affected_count == 0:
-        raise ValueError("Invalid thread identity")
+        raise ValueError('Invalid thread identity')
     elif affected_count > 1:
         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid),
                                                    ctypes.c_long(0))
-        raise SystemError("PyThreadState_SetAsyncExc failed")
+        raise SystemError('PyThreadState_SetAsyncExc failed')

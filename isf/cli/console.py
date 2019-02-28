@@ -7,10 +7,11 @@ from ..parameter import ParameterValidationError
 from .handler import ConsoleHandler
 from prompt_toolkit import print_formatted_text, HTML
 
-from .commands.set import CommandSet
-from .commands.use import CommandUse
-from .commands.run import CommandRun
-from .commands.list import CommandList
+from .cmd.set import CommandSet
+from .cmd.use import CommandUse
+from .cmd.run import CommandRun
+from .cmd.list import CommandList
+from .cmd.back import CommandBack
 
 
 commands = {}
@@ -37,7 +38,7 @@ def register_command(cmd):
         raise ValueError('Command \'%s\' already registered' % cmd.name)
     for alias in cmd.aliases:
         if alias in commands:
-            raise ValueError('Command \'%s\' already registered' % cmd.alias)
+            raise ValueError('Command \'%s\' already registered' % alias)
     commands[cmd.name] = cmd
     for alias in cmd.aliases:
         commands[alias] = cmd
@@ -48,6 +49,7 @@ register_command(CommandSet())
 register_command(CommandUse())
 register_command(CommandRun())
 register_command(CommandList())
+register_command(CommandBack())
 
 
 # Prints the banner

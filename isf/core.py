@@ -232,3 +232,9 @@ def select_module(name):
         raise ModuleExecutionError('No module named "%s"' % name)
     module_input = {}
     current_module = modules[name]
+
+
+def get_current_module():
+    if not current_module:
+        raise ParameterValidationError('No module selected')
+    return current_module

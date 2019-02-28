@@ -1,5 +1,4 @@
 import inspect
-import sys
 from . import core
 from . import parameter
 from enum import Enum
