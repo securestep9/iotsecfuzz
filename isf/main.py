@@ -3,7 +3,7 @@ import os
 import argparse
 import logging
 from . import core
-from . import cli
+from . import console
 
 
 sys.path.append(os.path.abspath('../'))
@@ -35,7 +35,7 @@ def main():
     if args.gui:
         pass
     else:
-        cli.start()
+        console.start()
     return 0
 
 

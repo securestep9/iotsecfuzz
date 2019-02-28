@@ -1,11 +1,9 @@
-import pkgutil
-import sys
-import threading
+import ctypes
 import inspect
 import re
-import ctypes
-from queue import Queue
+import threading
 from binascii import unhexlify
+from queue import Queue
 
 
 class MacAddress:
@@ -15,12 +13,12 @@ class MacAddress:
             self.value = value.value
             return
         elif not isinstance(value, str):
-            raise ValueError("Invalid MAC address format")
-        if re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$",
+            raise ValueError('Invalid MAC address format')
+        if re.match('[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$',
                     value.lower()):
             self.value = value
         else:
-            raise ValueError("Invalid MAC address format")
+            raise ValueError('Invalid MAC address format')
 
     def __str__(self):
         return self.value
@@ -39,14 +37,14 @@ class IPv4:
             self.value = value.value
             return
         elif not isinstance(value, str):
-            raise ValueError("Invalid IPv4 address format")
+            raise ValueError('Invalid IPv4 address format')
         if re.match(
-                "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}"
-                + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}'
+                + '([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$',
                 value.lower()):
             self.value = value
         else:
-            raise ValueError("Invalid IPv4 address format")
+            raise ValueError('Invalid IPv4 address format')
 
     def __str__(self):
         return self.value

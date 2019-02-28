@@ -4,7 +4,7 @@ import getpass
 import semver
 from ... import core
 from ... import module
-from ...cli.console import logger
+from ...console.console import logger
 from prompt_toolkit import prompt, HTML
 
 prompt_template = '<a fg="#8E33CE">[?]</a> <a fg="#FFFFFF">%s: </a>'
