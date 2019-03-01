@@ -4,7 +4,7 @@ from prompt_toolkit import PromptSession
 from .. import core
 from ..core import logger as logger, ModuleExecutionError
 from ..parameter import ParameterValidationError
-from .handler import ConsoleHandler
+from .logging import ConsoleHandler, ConsoleFormatter
 from prompt_toolkit import print_formatted_text, HTML
 
 from .cmd.set import CommandSet
@@ -26,7 +26,7 @@ logging.addLevelName(logging.ERROR, '<error>[!]</error>')
 LOGGING_DATE_FORMAT = '%H:%M:%S'
 
 handler = ConsoleHandler()
-handler.setFormatter(logging.Formatter(fmt=LOGGING_FORMAT,
+handler.setFormatter(ConsoleFormatter(fmt=LOGGING_FORMAT,
                                        datefmt=LOGGING_DATE_FORMAT))
 
 logger.propagate = False

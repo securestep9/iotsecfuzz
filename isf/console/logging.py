@@ -26,3 +26,10 @@ class ConsoleHandler(logging.Handler):
                 HTML(msg.format(level_msg_styles[record.levelno])), style=style)
         except Exception:
             self.handleError(record)
+
+
+class ConsoleFormatter(logging.Formatter):
+
+    def formatException(self, exc_info):
+        exc_text = super(ConsoleFormatter, self).formatException(exc_info)
+        return '<a fg="#FF0000">%s</a>' % exc_text
