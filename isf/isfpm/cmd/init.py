@@ -10,22 +10,18 @@ from prompt_toolkit import prompt, HTML
 
 prompt_template = '<a fg="#8E33CE">[?]</a> <a fg="#FFFFFF">%s: </a>'
 
-start_script_template = '''
-import os
+start_script_template = '''import os
 import subprocess
 
 module_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 subprocess.run(['isf', '--module-dir', module_dir])
-
 '''
 
-debug_script_template = '''
-import os
+debug_script_template = '''import os
 import subprocess
 
 module_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 subprocess.run(['isf', '--dev', '--module-dir', module_dir])
-
 '''
 
 
@@ -96,6 +92,9 @@ def setup_environment(manifest):
     logger.info('Generating run scripts')
     scripts_dir = os.path.join(cwd, 'scripts')
     Path(scripts_dir).mkdir(parents=True, exist_ok=True)
+
+    # Create output directory
+    Path(os.path.join(cwd, 'out')).mkdir(parents=True, exist_ok=True)
 
     start_script_path = os.path.join(scripts_dir, 'start.py')
     with open(start_script_path, 'wt', encoding='utf-8') as out:

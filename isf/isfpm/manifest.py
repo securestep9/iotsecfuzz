@@ -8,6 +8,7 @@ from .. import parameter
 # TODO custom validation replace with JSON Schema
 
 name_pattern = '^[a-zA-Z0-9_-]{3,35}$'
+qualified_name_pattern = '^[a-zA-Z0-9_\-\/]{3,100}$'
 
 description_schema = {
     'type': str,
@@ -163,7 +164,7 @@ manifest_schema = {
         'dependencies': {
             'type': dict,
             'required': True,
-            'key-pattern': name_pattern,
+            'key-pattern': qualified_name_pattern,
             'value-template': {
                 'type': str,
                 'validator': lambda obj, value:

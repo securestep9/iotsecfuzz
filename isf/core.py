@@ -24,7 +24,6 @@ LOGGING_FORMAT = '[%(asctime)s %(levelname)s]: %(message)s'
 # Log time as dd-Mon-yyyy hh:mm:ss
 LOGGING_DATE_FORMAT = '%H:%M:%S'
 
-
 # Apply the config
 logging.basicConfig(
     level=(logging.DEBUG if os.getenv('DEBUG') else logging.INFO),
@@ -51,15 +50,17 @@ def collect_modules_from_directory(modules_dir):
     :param modules_dir: base path to look for modules at
     :return:
     """
-    categories_paths = filter(lambda f: os.path.isdir(f),
-                              [os.path.join(modules_dir, 'isf', *p.split('/'))
-                               for p in module.CATEGORIES])
+    categories_paths = list(filter(lambda f: os.path.isdir(f),
+                                   [os.path.join(modules_dir, 'isf',
+                                                 *p.split('/'))
+                                    for p in module.CATEGORIES]))
     result = {}
     for category_dir in categories_paths:
         dirs = filter(lambda f: os.path.isdir(f),
                       [os.path.join(category_dir, p) for p in
                        os.listdir(category_dir)])
         for module_dir in dirs:
+            print(module_dir)
             if module_dir in categories_paths:
                 continue
             manifest_path = os.path.join(module_dir, 'manifest.json')
@@ -98,11 +99,12 @@ def check_modules_dependencies(installed_modules):
         logger.debug('Checking dependencies for module %s' % qualified_name)
         unmet_dependencies = []
         manifest = value[0]
-        for name, version in manifest['dependencies']:
+        for name in manifest['dependencies']:
+            version = manifest['dependencies'][name]
             if name not in installed_modules:
                 unmet_dependencies.append((name, 'not installed'))
             else:
-                installed_version = installed_modules[name]['version']
+                installed_version = installed_modules[name][0]['version']
                 if not semver.satisfies(installed_version, version,
                                         loose=False):
                     unmet_dependencies.append((name, ('version "%s" does not '
