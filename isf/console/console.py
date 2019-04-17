@@ -12,7 +12,9 @@ from .cmd.use import CommandUse
 from .cmd.run import CommandRun
 from .cmd.list import CommandList
 from .cmd.back import CommandBack
-
+from .cmd.search import CommandSearch
+from .cmd.options import CommandOptions
+from .cmd.help import CommandHelp
 
 commands = {}
 
@@ -50,6 +52,9 @@ register_command(CommandUse())
 register_command(CommandRun())
 register_command(CommandList())
 register_command(CommandBack())
+register_command(CommandSearch())
+register_command(CommandOptions())
+register_command(CommandHelp())
 
 
 # Prints the banner

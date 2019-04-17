@@ -50,6 +50,10 @@ class Parameter:
             raise ParameterValidationError(
                 'Unable to coerce value "%s" to type "%s"' % (
                     str(value), self.type.__name__))
+        except TypeError:
+            raise ParameterValidationError(
+                'Type "%s" expected for value "%s"' % (
+                    self.type.__name__, str(value)))
         return result
 
 

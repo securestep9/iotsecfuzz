@@ -60,7 +60,6 @@ def collect_modules_from_directory(modules_dir):
                       [os.path.join(category_dir, p) for p in
                        os.listdir(category_dir)])
         for module_dir in dirs:
-            print(module_dir)
             if module_dir in categories_paths:
                 continue
             manifest_path = os.path.join(module_dir, 'manifest.json')
