@@ -83,8 +83,8 @@ def submodules_validator(obj, value):
     if obj['type'] != 'container' or len(value) == 0:
         return False
     return all(
-        [not obj['input'].keys().intersection(sm['input'].keys()) for sm in
-         value])
+        [not set(obj['input'].keys()).intersection(set(sm['input'].keys())) for
+         sm in value.values()])
 
 
 manifest_schema = {

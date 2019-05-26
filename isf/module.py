@@ -98,7 +98,7 @@ class Submodule(Module):
                                 'input'].keys()}
         container = self.container_class(**class_params)
         self.run_method = getattr(container, self.submodule_name)
-        yield from super(Submodule, self).run(**submodule_params)
+        yield from super(Submodule, self).run(submodule_params)
         del self.run_method
         del container
 
@@ -131,7 +131,7 @@ def load_modules(manifest, location):
                     manifest['container-class']))
         container_class = getattr(py_module, manifest['container-class'])
         submodules = {}
-        for submodule_name in manifest[submodules].keys():
+        for submodule_name in manifest['submodules'].keys():
             if not hasattr(container_class, submodule_name):
                 raise core.ModuleLoadingError(
                     ('Module %s/%s does not provide '
