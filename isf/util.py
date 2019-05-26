@@ -80,7 +80,7 @@ class CallbackIterator:
             self.queue.put(value)
 
         def run():
-            if self.callback_name in inspect.getfullargspec(self.func):
+            if self.callback_name in inspect.getfullargspec(self.func).args:
                 result = self.func(*self.args, **self.kwargs,
                                    **{self.callback_name: callback})
             else:
