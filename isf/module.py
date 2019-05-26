@@ -54,7 +54,7 @@ class Module:
 
     def run(self, in_params):
         generator = None
-        if inspect.isgenerator(self.run_method):
+        if inspect.isgeneratorfunction(self.run_method):
             generator = self.run_method(**in_params)
         else:
             generator = CallbackIterator(self.run_method,
