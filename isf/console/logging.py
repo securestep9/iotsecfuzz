@@ -21,6 +21,7 @@ class ConsoleHandler(logging.Handler):
 
     def emit(self, record):
         try:
+            record.msg = record.msg.replace('{', '{{').replace('}', '}}')
             msg = self.format(record)
             print_formatted_text(
                 HTML(msg.format(level_msg_styles[record.levelno])), style=style)

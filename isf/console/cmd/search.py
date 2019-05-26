@@ -17,7 +17,7 @@ class CommandSearch(Command):
     @staticmethod
     def highlight(string, substring):
         i = string.index(substring)
-        return string[:i] + '\x1b[90;103m' + string[i:i + len(
+        return string[:i] + '\x1b[90;43m' + string[i:i + len(
             substring)] + '\x1b[0m\x1b[97m' + string[i + len(substring):]
 
     def run(self, args):

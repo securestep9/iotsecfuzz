@@ -16,7 +16,7 @@ class CommandHelp(Command):
             [console.commands[cmd].aliases for cmd in console.commands], [])
         commands = filter(lambda cmd: cmd not in aliases, console.commands)
         headers = ['\x1b[96m%s\x1b[0m' % s for s in
-                   ['Name', 'Parameters', 'Description', 'Aliases']]
+                   ['Name', 'Parameters', 'Description', 'Aliases'.center(20)]]
         core.logger.info('Available commands:')
         items = [[cmd, ', '.join(console.commands[cmd].param_descriptions),
                   console.commands[cmd].description,

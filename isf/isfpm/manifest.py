@@ -8,7 +8,7 @@ from .. import parameter
 # TODO custom validation replace with JSON Schema
 
 name_pattern = '^[a-zA-Z0-9_-]{3,35}$'
-qualified_name_pattern = '^[a-zA-Z0-9_\-\/]{3,100}$'
+qualified_name_pattern = '^[a-zA-Z0-9_\\-\\/]{3,100}$'
 
 description_schema = {
     'type': str,
