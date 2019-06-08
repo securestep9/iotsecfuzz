@@ -1,6 +1,7 @@
 import logging
 from prompt_toolkit import print_formatted_text, HTML
 from prompt_toolkit.styles import Style
+import html
 
 style = Style.from_dict({
     'debug': 'bg:ansigreen fg:ansiwhite',
@@ -21,8 +22,9 @@ class ConsoleHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            record.msg = record.msg.replace('{', '{{').replace('}', '}}')
-            msg = self.format(record)
+            record.msg = html.escape(
+                record.msg.replace('{', '{{').replace('}', '}}'))
+            msg = self.format(record).encode('unicode_escape').decode()
             print_formatted_text(
                 HTML(msg.format(level_msg_styles[record.levelno])), style=style)
         except Exception:
@@ -33,4 +35,7 @@ class ConsoleFormatter(logging.Formatter):
 
     def formatException(self, exc_info):
         exc_text = super(ConsoleFormatter, self).formatException(exc_info)
+        exc_text = html.escape(
+            exc_text.replace('{', '{{').replace('}', '}}')).encode(
+            'unicode_escape').decode()
         return '<a fg="#FF0000">%s</a>' % exc_text

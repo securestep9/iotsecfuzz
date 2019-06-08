@@ -7,13 +7,13 @@ from .. import parameter
 
 # TODO custom validation replace with JSON Schema
 
-name_pattern = '^[a-zA-Z0-9_-]{3,35}$'
-qualified_name_pattern = '^[a-zA-Z0-9_\\-\\/]{3,100}$'
+name_pattern = r'^[a-zA-Z0-9_-]{3,35}$'
+qualified_name_pattern = r'^[a-zA-Z0-9_\\-\\/]{3,100}$'
 
 description_schema = {
     'type': str,
     'required': True,
-    'pattern': '^[a-zA-Z0-9_ -]{0,80}$'
+    'pattern': r'^[A-Za-z0-9 _.,!\"\'\$\&\;\?@ \x00]{0,80}$'
 }
 
 run_policy_schema = {
@@ -25,10 +25,10 @@ run_policy_schema = {
 output_params_schema = {
     'type': dict,
     'required': False,
-    'key-pattern': '^[a-zA-Z0-9_-]{1,20}$',
+    'key-pattern': r'^[a-zA-Z0-9_-]{1,20}$',
     'value-template': {
         'type': str,
-        'pattern': '^[a-zA-Z0-9_-]{0,80}$'
+        'pattern': r'^[a-zA-Z0-9_-]{0,80}$'
     }
 }
 
@@ -64,7 +64,7 @@ param_schema = {
 input_params_schema = {
     'type': dict,
     'required': True,
-    'key-pattern': '^[a-zA-Z0-9_-]{1,20}$',
+    'key-pattern': r'^[a-zA-Z0-9_-]{1,20}$',
     'value-template': param_schema
 }
 
@@ -122,14 +122,14 @@ manifest_schema = {
             'required': True,
             'validator': lambda obj, value: len(value) > 0 and all(
                 [type(el) is str and bool(
-                    re.match('^[a-zA-Z0-9_@ .-]{4,35}$', el)) for el in
+                    re.match(r'^[a-zA-Z0-9_@ .-]{4,35}$', el)) for el in
                  value])
         },
         'keywords': {
             'type': list,
             'required': False,
             'validator': lambda obj, value: all(
-                [bool(re.match('^[a-zA-Z0-9_@ .-]{4,35}$', el)) for el in
+                [bool(re.match(r'^[a-zA-Z0-9_@ .-]{4,35}$', el)) for el in
                  value])
         },
         'exclude': {
@@ -142,7 +142,7 @@ manifest_schema = {
         'license': {
             'type': str,
             'required': True,
-            'pattern': '^[a-zA-Z0-9_-]{0,35}$'
+            'pattern': r'^[a-zA-Z0-9_-]{0,35}$'
         },
         'input': input_params_schema,
         'output': output_params_schema,
@@ -158,7 +158,7 @@ manifest_schema = {
             'type': str,
             'required': lambda obj: 'type' in obj and obj[
                 'type'] == 'container',
-            'pattern': '^[a-zA-Z0-9_-]{0,35}$',
+            'pattern': r'^[a-zA-Z0-9_]{0,35}$',
             'validator': lambda obj, value: obj['type'] == 'container'
         },
         'dependencies': {

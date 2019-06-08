@@ -25,6 +25,7 @@ class Module:
         self.manifest = manifest
         self.run_policy = RunPolicy(manifest['run-policy'])
         self.name = manifest['name']
+        self.description = manifest['description']
         self.category = manifest['category']
         self.location = location
         self.input = None
@@ -80,15 +81,17 @@ class Submodule(Module):
         super(Submodule, self).__init__(manifest, location, py_module)
         self.qualified_name = '%s/%s/%s' % (
             manifest['category'], manifest['name'], name)
-        if 'run-policy' in manifest['submodules'][name]:
-            self.run_policy = manifest['submodules'][name]['run-policy']
+        submodule_manifest = manifest['submodules'][name]
+        if 'run-policy' in submodule_manifest:
+            self.run_policy = RunPolicy(submodule_manifest['run-policy'])
         self.submodule_name = name
+        self.description = submodule_manifest['description']
         self.container_class = getattr(py_module, manifest['container-class'])
         self.input = {key: parameter.param_from_dict(value) for key, value
                       in manifest['input'].items()}
         self.input.update(
             {key: parameter.param_from_dict(value) for key, value in
-             manifest['submodules'][name]['input'].items()})
+             submodule_manifest['input'].items()})
 
     def run(self, in_params):
         class_params = {key: in_params[key] for key in

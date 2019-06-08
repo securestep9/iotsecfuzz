@@ -15,7 +15,7 @@ class CommandList(Command):
                    ['Name', 'Version', 'Authors', 'Description', 'Run policy']]
         core.logger.info('Loaded modules:')
         items = [[n, m.manifest['version'], ','.join(m.manifest['authors']),
-                  m.manifest['description'], m.run_policy] for n, m in
+                  m.description, m.run_policy] for n, m in
                  core.modules.items()]
         print()
         print_formatted_text(

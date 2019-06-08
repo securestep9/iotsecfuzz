@@ -159,7 +159,7 @@ def load_modules():
                     logger.debug(' - %s' % key)
                 submodules_loaded += len(fetched.keys())
             else:
-                logger.info('Module loaded successfully')
+                logger.debug('Module loaded successfully')
                 modules_loaded += 1
             modules.update(fetched)
 
