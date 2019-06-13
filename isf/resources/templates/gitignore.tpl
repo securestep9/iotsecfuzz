@@ -1,26 +1,11 @@
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
-# Sensitive or high-churn files
+# IntelliJ project directory
 .idea/
-
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
-
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
 
 # CMake
 cmake-build-*/
-
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
 
 # File-based project format
 *.iws
@@ -49,11 +34,8 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-isf/modules/isf/hardware/**/*
-isf/modules/isf/firmware/**/*
-isf/modules/isf/communication/arp/**/*
-isf/modules/isf/communication/bluetooth/**/*
-isf/modules/isf/communication/nrf24/**/**/*
-isf/modules/isf/communication/wifi/**/*
-isf/modules/isf/communication/zigbee/**/*
-!.gitkeep
+# PyCharm virtual environment
+venv/
+
+# Module scripts directory
+scripts/

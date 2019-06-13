@@ -4,6 +4,9 @@ import re
 import threading
 from binascii import unhexlify
 from queue import Queue
+import os
+import sys
+import site
 
 
 class MacAddress:
@@ -117,3 +120,46 @@ def async_raise(thread_obj, exception):
         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(target_tid),
                                                    ctypes.c_long(0))
         raise SystemError('PyThreadState_SetAsyncExc failed')
+
+
+def activate_virtualenv(bin_dir):
+    """
+    Activates virtual environment for current process.
+    Reference:
+    https://github.com/pypa/virtualenv/blob/master/virtualenv_embedded/activate_this.py
+    :param bin_dir: Binaries directory of virtual environment
+    :return:
+    """
+    os.environ['PATH'] = os.pathsep.join(
+        [bin_dir] + os.environ.get('PATH', '').split(os.pathsep))
+
+    base = os.path.dirname(bin_dir)
+
+    # Virtual env is right above bin directory
+    os.environ['VIRTUAL_ENV'] = base
+
+    # Add the virtual environments site-package
+    is_pypy = hasattr(sys, 'pypy_version_info')
+    is_jython = sys.platform.startswith('java')
+    if is_jython:
+        site_packages = os.path.join(base, 'Lib', 'site-packages')
+    elif is_pypy:
+        site_packages = os.path.join(base, 'site-packages')
+    else:
+        is_win = sys.platform == 'win32'
+        if is_win:
+            site_packages = os.path.join(base, 'Lib', 'site-packages')
+        else:
+            site_packages = os.path.join(base, 'lib',
+                                         'python{}'.format(sys.version[:3]),
+                                         'site-packages')
+
+    prev = set(sys.path)
+    site.addsitedir(site_packages)
+    sys.real_prefix = sys.prefix
+    sys.prefix = base
+
+    # Move the added items to the front of the path, in place
+    new = list(sys.path)
+    sys.path[:] = [i for i in new if i not in prev] + [i for i in new if
+                                                       i in prev]

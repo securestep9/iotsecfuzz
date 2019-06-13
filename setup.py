@@ -1,5 +1,5 @@
 from pathlib import Path
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
@@ -36,17 +36,10 @@ setup(
     name='IoTSecFuzz',
     version='1.0.0',
     description='IoT security testing framework',
-    author='Not_so_sm4rt_hom3 team',
+    author='Invuls',
     url='https://gitlab.com/invuls/iot-projects/iotsecfuzz',
-    package_dir={
-        'isf': 'isf',
-        'isf.isfpm': 'isf/isfpm',
-        'isf.isfpm.cmd': 'isf/isfpm/cmd',
-        'isf.console': 'isf/console',
-        'isf.console.cmd': 'isf/console/cmd'
-    },
-    packages=['isf', 'isf.isfpm', 'isf.isfpm.cmd', 'isf.console',
-              'isf.console.cmd'],
+    packages=find_namespace_packages(),
+    package_data={'isf.resources': ['*', '**/*']},
     cmdclass={
         'develop': PostDevelopCommand,
         'install': PostInstallCommand,

@@ -29,7 +29,7 @@ LOGGING_DATE_FORMAT = '%H:%M:%S'
 
 handler = ConsoleHandler()
 handler.setFormatter(ConsoleFormatter(fmt=LOGGING_FORMAT,
-                                       datefmt=LOGGING_DATE_FORMAT))
+                                      datefmt=LOGGING_DATE_FORMAT))
 
 logger.propagate = False
 logger.handlers = [handler]

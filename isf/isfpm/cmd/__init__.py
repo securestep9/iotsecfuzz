@@ -1,6 +1,5 @@
-from os.path import dirname, basename, isfile
-import glob
+import os
 
-modules = glob.glob(dirname(__file__) + '/*.py')
-__all__ = [basename(f)[:-3] for f in modules if
-           isfile(f) and not f.endswith('__init__.py')]
+modules = os.listdir(os.path.dirname(__file__))
+__all__ = [os.path.basename(f).rstrip('.py') for f in modules if
+           not f.endswith('__init__.py') and not f.endswith('__pycache__')]
