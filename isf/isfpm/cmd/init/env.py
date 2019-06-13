@@ -1,5 +1,4 @@
 import os
-import subprocess
 import venv
 import json
 import sys
@@ -8,7 +7,7 @@ from pathlib import Path
 from ....core import logger
 from pkgutil import get_data
 from ....util import activate_virtualenv
-from ....console.logging import log_process_output
+from ....console.logging import run_with_logger
 
 start_script_template = get_data('isf.resources',
                                  'templates/start.py.tpl').decode()
@@ -31,13 +30,9 @@ def init_git(cwd):
         logger.info('Git repository already exists, skipping creation')
     else:
         logger.info('Creating git repository')
-        proc = subprocess.Popen(['git', 'init'],
-                                stderr=subprocess.STDOUT,
-                                stdout=subprocess.PIPE)
-        result = log_process_output(proc, prefix='git')
-        if result != 0:
-            raise RuntimeError('Unable to create git repository; '
-                               + 'is Git installed and available in PATH?')
+        run_with_logger(['git', 'init'], prefix='git',
+                        error_msg='Unable to create git repository; '
+                                  + 'is Git installed and available in PATH?')
 
     # Inject data into .gitignore
     with open(os.path.join(cwd, '.gitignore'), 'at+',
@@ -45,12 +40,8 @@ def init_git(cwd):
         out.write(gitignore_template)
 
     logger.info('Adding files')
-    proc = subprocess.Popen(['git', 'add', '.'],
-                            stderr=subprocess.STDOUT,
-                            stdout=subprocess.PIPE)
-    result = log_process_output(proc, prefix='git')
-    if result != 0:
-        raise RuntimeError('Unable to add files to Git')
+    run_with_logger(['git', 'add', '.'], prefix='git',
+                    error_msg='Unable to add files to Git')
 
 
 def create_virtualenv(dir):
@@ -135,15 +126,16 @@ def setup_environment(manifest, args):
     else:
         bin_path = sys.executable
 
+    # Required for find_namespace_packages feature to work
+    logger.info('Upgrading setuptools')
+    run_with_logger(
+        [bin_path, '-m', 'pip', 'install', '--upgrade', 'setuptools'],
+        prefix='pip', error_msg='Unable to upgrade setuptools')
+
     logger.info('Installing requirements')
-    install_proc = subprocess.Popen(
+    run_with_logger(
         [bin_path, '-m', 'pip', 'install', '-r', 'requirements.txt'],
-        env=os.environ, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
-
-    result = log_process_output(install_proc, prefix='pip')
-
-    if result != 0:
-        raise RuntimeError('Unable to install required packages')
+        prefix='pip', error_msg='Unable to install required packages')
 
     if args.pycharm:
         pycharm.init_pycharm_project(args, cwd, manifest, bin_path)

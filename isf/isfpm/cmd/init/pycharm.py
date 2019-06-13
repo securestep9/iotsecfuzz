@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import subprocess
 from ....core import logger
-from ....console.logging import log_process_output
+from ....console.logging import run_with_logger
 
 
 def get_project_file(dir, default):
@@ -15,14 +15,9 @@ def get_project_file(dir, default):
 
 def install_debugger_package(bin_path):
     logger.info('Installing pydevd_pycharm')
-    install_proc = subprocess.Popen(
-        [bin_path, '-m', 'pip', 'install', 'pydevd_pycharm'],
-        env=os.environ, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
-
-    result = log_process_output(install_proc, prefix='pip')
-
-    if result != 0:
-        raise RuntimeError('Unable to install required packages')
+    run_with_logger(
+        [bin_path, '-m', 'pip', 'install', 'pydevd_pycharm'], prefix='pip',
+        error_msg='Unable to install pydevd_pycharm')
 
 
 def init_pycharm_project(args, cwd, manifest, bin_path):

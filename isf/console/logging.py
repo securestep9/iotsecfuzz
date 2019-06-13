@@ -2,6 +2,8 @@ import logging
 from prompt_toolkit import print_formatted_text, HTML
 from prompt_toolkit.styles import Style
 import html
+import subprocess
+import os
 
 style = Style.from_dict({
     'debug': 'bg:ansigreen fg:ansiwhite',
@@ -24,9 +26,21 @@ def log_process_output(proc, prefix='$'):
         result = proc.poll()
         if next_line == '' and result is not None:
             return result
+        next_line = html.escape(
+            next_line.replace('{', '{{').replace('}', '}}'))
         print_formatted_text(
             HTML('<a fg="#808000">[%s]</a> <a fg="#FFFFFF">%s</a>' % (
                 prefix, next_line.rstrip('\r\n').rstrip('\n'))))
+
+
+def run_with_logger(cmd, *, prefix='$',
+                    error_msg='Process finished with non-zero exit code'):
+    proc = subprocess.Popen(
+        cmd, env=os.environ, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+
+    result = log_process_output(proc, prefix=prefix)
+    if result != 0:
+        raise RuntimeError(error_msg)
 
 
 class ConsoleHandler(logging.Handler):
