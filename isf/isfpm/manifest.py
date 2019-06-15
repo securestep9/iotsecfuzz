@@ -13,7 +13,7 @@ qualified_name_pattern = r'^[a-zA-Z0-9_\\-\\/]{3,100}$'
 description_schema = {
     'type': str,
     'required': True,
-    'pattern': r'^[A-Za-z0-9 _.,!\"\'\$\&\;\?@ \x00]{0,80}$'
+    'pattern': r'^[A-Za-z0-9 _.,^*\-+\/\\#()[\]{}!:"\'$&;?@ \t%=<>]{0,80}$'
 }
 
 run_policy_schema = {
