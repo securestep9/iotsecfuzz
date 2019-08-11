@@ -3,6 +3,7 @@ from prompt_toolkit import print_formatted_text, HTML
 from prompt_toolkit.styles import Style
 import html
 import subprocess
+import sys
 import os
 
 style = Style.from_dict({
@@ -34,9 +35,10 @@ def log_process_output(proc, prefix='$'):
 
 
 def run_with_logger(cmd, *, prefix='$',
-                    error_msg='Process finished with non-zero exit code'):
+                    error_msg='Process finished with non-zero exit code',
+                    env=os.environ):
     proc = subprocess.Popen(
-        cmd, env=os.environ, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        cmd, env=env, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
     result = log_process_output(proc, prefix=prefix)
     if result != 0:

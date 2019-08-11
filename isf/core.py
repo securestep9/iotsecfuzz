@@ -1,8 +1,11 @@
 import os
 import logging
+from pathlib import Path
+
 import semver
 from . import module
 from .worker import Worker
+from .util import get_calling_module
 from .parameter import ParameterValidationError
 from .isfpm.manifest import load_manifest
 
@@ -32,28 +35,71 @@ logging.basicConfig(
 # Create the logger
 logger = logging.getLogger('isf')
 
+# Framework home directory
+HOME_DIR = None
+
 # Default path to load modules from
-MODULES_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'modules')
+MODULES_DIR = None
+
+# Directory where external data of all modules is stored
+DATA_DIR = None
 
 # List of paths to load modules from
-modules_dirs = [MODULES_DIR]
+modules_dirs = []
 
 # Dictionary where modules are stored
 modules = {}
 
+# Configuration objects
+configs = {}
 
-def collect_modules_from_directory(modules_dir):
+
+def init_home_directory(home_arg=None):
+    global HOME_DIR, MODULES_DIR, DATA_DIR
+
+    if os.getenv('ISF_HOME') is not None:
+        HOME_DIR = os.getenv('ISF_HOME')
+
+    if home_arg is not None:
+        HOME_DIR = home_arg
+
+    if os.name == 'nt':
+        base_dir = os.getenv('APPDATA')
+    else:
+        base_dir = str(Path.home())
+
+    HOME_DIR = os.path.join(base_dir, '.isf') if HOME_DIR is None else HOME_DIR
+    Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
+
+    MODULES_DIR = os.path.join(HOME_DIR, 'modules')
+    Path(MODULES_DIR).mkdir(parents=True, exist_ok=True)
+
+    DATA_DIR = os.path.join(HOME_DIR, 'data')
+    Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
+
+    for f in os.listdir(MODULES_DIR):
+        path = os.path.join(MODULES_DIR, f)
+        if not os.path.isdir(path):
+            continue
+        for category in module.CATEGORIES:
+            if f.startswith(category.replace('/', '.')):
+                modules_dirs.insert(0, path)
+
+    modules_dirs.insert(0, MODULES_DIR)
+
+
+def collect_module_from_directory(module_root):
     """
-    Collect all valid modules from specified directory.
+    Collect single valid module from specified directory.
 
-    :param modules_dir: base path to look for modules at
+    :param module_root: base path to look for module at
     :return:
     """
     categories_paths = list(filter(lambda f: os.path.isdir(f),
-                                   [os.path.join(modules_dir, 'isf',
+                                   [os.path.join(module_root, 'isf',
                                                  *p.split('/'))
                                     for p in module.CATEGORIES]))
+
     result = {}
     for category_dir in categories_paths:
         dirs = filter(lambda f: os.path.isdir(f),
@@ -62,7 +108,8 @@ def collect_modules_from_directory(modules_dir):
         for module_dir in dirs:
             if module_dir in categories_paths:
                 continue
-            manifest_path = os.path.join(module_dir, 'manifest.json')
+            manifest_path = os.path.join(module_dir, 'resources',
+                                         'manifest.json')
             if os.path.isfile(manifest_path):
                 manifest = None
                 try:
@@ -74,8 +121,7 @@ def collect_modules_from_directory(modules_dir):
                 if manifest is None:
                     continue
                 qualified_name = manifest['category'] + '/' + manifest['name']
-                if os.path.basename(os.path.dirname(manifest_path)) != manifest[
-                    'name']:
+                if os.path.basename(module_dir) != manifest['name']:
                     raise ModuleLoadingError(
                         'Module "%s" must be located in "%s" directory' % (
                             qualified_name,
@@ -126,12 +172,11 @@ def check_modules_dependencies(installed_modules):
 
 def load_modules():
     collected_modules = {}
-    modules_to_load = {}
 
     # Collect modules from all paths
     logger.info('Collecting modules')
     for modules_dir in modules_dirs:
-        collected_modules.update(collect_modules_from_directory(modules_dir))
+        collected_modules.update(collect_module_from_directory(modules_dir))
 
     # Check dependencies
     modules_to_load = check_modules_dependencies(collected_modules)
@@ -169,7 +214,7 @@ def load_modules():
 
 ################################################################################
 #                                                                              #
-#                                                                              #
+#                                   CORE API                                   #
 #                                                                              #
 ################################################################################
 
@@ -177,6 +222,16 @@ module_input = {}
 current_module = None
 
 workers = {}
+
+
+def get_config():
+    module_name = get_calling_module()
+    return configs[module_name]
+
+
+def get_data_dir():
+    module_name = get_calling_module()
+    return os.path.dirname(configs[module_name].path)
 
 
 def set_parameter(key, value):

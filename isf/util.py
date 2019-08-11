@@ -1,6 +1,7 @@
 import ctypes
 import inspect
 import re
+import shutil
 import threading
 from binascii import unhexlify
 from queue import Queue
@@ -104,6 +105,12 @@ class CallbackIterator:
             raise StopIteration
         else:
             return obj
+
+
+def get_calling_module(depth=1):
+    frame_records = inspect.stack()[1 + depth]
+    calling_module = inspect.getmodule(frame_records[0]).__name__
+    return calling_module
 
 
 def async_raise(thread_obj, exception):

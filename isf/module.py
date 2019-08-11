@@ -1,8 +1,12 @@
+import os
 import inspect
+from pathlib import Path
+
 from . import core
 from . import parameter
 from enum import Enum
 from .util import CallbackIterator
+from .config import Configuration
 
 
 class RunPolicy(Enum):
@@ -118,6 +122,26 @@ def load_modules(manifest, location):
         manifest['type'] = 'basic'
     if 'run-policy' not in manifest:
         manifest['run-policy'] = 'all'
+
+    data_dir = os.path.join(core.DATA_DIR, *module_path.split('/')[1:])
+    Path(data_dir).mkdir(parents=True, exist_ok=True)
+
+    default_config = py_module.default_config \
+        if hasattr(py_module, 'default_config') else None
+    config_schema = py_module.config_schema \
+        if hasattr(py_module, 'config_schema') else None
+
+    config = Configuration(os.path.join(data_dir, 'config.json'),
+                           config_schema, default_config)
+    config.load()
+    if default_config:
+        config.save()
+
+    # Set config & data directory attributes
+    setattr(py_module, 'config', config)
+    setattr(py_module, 'data_dir', data_dir)
+
+    core.configs['.'.join(module_path.split('/'))] = config
 
     if manifest['type'] == 'basic':
         if not hasattr(py_module, 'run'):

@@ -37,5 +37,8 @@ fabric.properties
 # PyCharm virtual environment
 venv/
 
+# ISF local home directory
+.isf/
+
 # Module scripts directory
 scripts/

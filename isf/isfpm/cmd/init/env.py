@@ -12,8 +12,14 @@ from ....console.logging import run_with_logger
 start_script_template = get_data('isf.resources',
                                  'templates/start.py.tpl').decode()
 
+wrapper_script_template = get_data('isf.resources',
+                                   'templates/wrapper.py.tpl').decode()
+
 debug_script_template = get_data('isf.resources',
                                  'templates/debug.py.tpl').decode()
+
+setup_script_template = get_data('isf.resources',
+                                 'templates/setup.py.tpl').decode()
 
 pycharm_script_template = get_data('isf.resources',
                                    'templates/pycharm.py.tpl').decode()
@@ -61,8 +67,11 @@ def create_virtualenv(dir):
     return bin_path
 
 
-def create_files(cwd, module_dir):
+def create_files(cwd, manifest, module_dir):
     logger.info('Creating directories')
+
+    home_dir = os.path.join(cwd, '.isf')
+    Path(home_dir).mkdir(parents=True, exist_ok=True)
 
     # Create __init__.py file
     open(os.path.join(module_dir, '__init__.py'), 'a').close()
@@ -71,6 +80,23 @@ def create_files(cwd, module_dir):
     with open(os.path.join(cwd, 'requirements.txt'), 'at+',
               encoding='utf-8') as out:
         out.write(install_url + '\n')
+
+    qualified_name = (manifest['category'] + '/' + manifest['name']).replace(
+        '/', '.')
+
+    setup_template = setup_script_template.replace('$NAME$', qualified_name)
+    setup_template = setup_template.replace('$VERSION$', manifest['version'])
+    setup_template = setup_template.replace('$DESCRIPTION$',
+                                            manifest['description'])
+    setup_template = setup_template.replace('$AUTHORS$',
+                                            ', '.join(manifest['authors']))
+    setup_template = setup_template.replace('$RESOURCES_PACKAGE$',
+                                            'isf.' + qualified_name
+                                            + '.resources')
+
+    # Create setup.py file
+    with open(os.path.join(cwd, 'setup.py'), 'at', encoding='utf-8') as out:
+        out.write(setup_template)
 
     logger.info('Generating run scripts')
     scripts_dir = os.path.join(cwd, 'scripts')
@@ -91,7 +117,12 @@ def setup_environment(manifest, args):
     module_dir = os.path.join(cwd, 'isf', *manifest['category'].split('/'),
                               manifest['name'])
     Path(module_dir).mkdir(parents=True, exist_ok=True)
-    manifest_path = os.path.join(module_dir, 'manifest.json')
+
+    resources_dir = os.path.join(module_dir, 'resources')
+    Path(resources_dir).mkdir(parents=True, exist_ok=True)
+    open(os.path.join(resources_dir, '__init__.py'), 'a').close()
+
+    manifest_path = os.path.join(resources_dir, 'manifest.json')
     if os.path.exists(manifest_path):
         logger.error(
             'Init failed: manifest.json already exists in target directory')
@@ -101,7 +132,7 @@ def setup_environment(manifest, args):
     with open(manifest_path, 'wt', encoding='utf-8') as out:
         json.dump(manifest, out, indent=2, sort_keys=False)
 
-    scripts_dir = create_files(cwd, module_dir)
+    scripts_dir = create_files(cwd, manifest, module_dir)
 
     debug_template = \
         debug_script_template.replace('$PYCHARM_DEBUG_CONFIG$',
@@ -138,6 +169,9 @@ def setup_environment(manifest, args):
         prefix='pip', error_msg='Unable to install required packages')
 
     if args.pycharm:
+        wrapper_script_path = os.path.join(scripts_dir, 'wrapper.py')
+        with open(wrapper_script_path, 'wt', encoding='utf-8') as out:
+            out.write(wrapper_script_template)
         pycharm.init_pycharm_project(args, cwd, manifest, bin_path)
         pycharm.install_debugger_package(bin_path)
 

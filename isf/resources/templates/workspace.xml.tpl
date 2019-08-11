@@ -23,6 +23,7 @@
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="ISF_HOME" value="$PROJECT_DIR$/.isf" />
       </envs>
       <option name="SDK_HOME" value="$SDK_HOME$" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
@@ -30,8 +31,8 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/debug.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/wrapper.py" />
+      <option name="PARAMETERS" value="&quot;$PROJECT_DIR$/scripts/debug.py&quot;" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="true" />
       <option name="MODULE_MODE" value="false" />
@@ -45,6 +46,7 @@
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="ISF_HOME" value="$PROJECT_DIR$/.isf" />
       </envs>
       <option name="SDK_HOME" value="$SDK_HOME$" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
@@ -52,8 +54,8 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/start.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/wrapper.py" />
+      <option name="PARAMETERS" value="&quot;$PROJECT_DIR$/scripts/start.py&quot;" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="true" />
       <option name="MODULE_MODE" value="false" />

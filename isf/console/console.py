@@ -96,9 +96,13 @@ def start():
             prompt_text += ' > '
 
             text = session.prompt(HTML('<a fg="#22CC11">%s</a>' % prompt_text))
-            if not text:
+            if not text.strip():
                 continue
+
             data = text.split()
+            if len(data) == 0:
+                continue
+
             cmd_name = data[0]
             args = data[1:] if len(data) > 0 else []
             if cmd_name in commands:

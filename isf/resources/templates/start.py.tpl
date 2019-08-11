@@ -13,5 +13,4 @@ module_dir = os.path.dirname(
 subprocess.run(['python', '-c',
                 'import isf.main;import isf.core;'
                 + 'isf.core.modules_dirs.append("' + module_dir + '");'
-                + 'isf.main.main()'],
-               creationflags=subprocess.CREATE_NEW_CONSOLE)
+                + 'isf.main.main()'])
