@@ -39,7 +39,7 @@ def install_from_directory(path, manifest=None, manifest_path=None):
             raise RuntimeError('Missing setup.py file')
 
         env = os.environ.copy()
-        env['PYTHONPATH'] = (';' if os.name == 'nt' else ';').join(sys.path)
+        env['PYTHONPATH'] = (';' if os.name == 'nt' else ':').join(sys.path)
         run_with_logger(
             ['python', 'setup.py', 'install', '--install-lib',
              core.MODULES_DIR],
