@@ -26,4 +26,6 @@ else:
     # Linux
     # TODO test with gnome-terminal
     cmd = ['python', "'%s'" % file]
-    subprocess.call(['x-terminal-emulator', '-e', ' '.join(cmd)])
+    subprocess.call(
+        ' '.join(['x-terminal-emulator', '-e', "%s" % ' '.join(cmd)]),
+        shell=True)
