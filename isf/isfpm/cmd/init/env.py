@@ -27,7 +27,7 @@ pycharm_script_template = get_data('isf.resources',
 gitignore_template = get_data('isf.resources',
                               'templates/gitignore.tpl').decode()
 
-install_url = 'git+https://gitlab.com/invuls/iot-projects/iotsecfuzz.git@1.0'
+install_url = 'git+https://gitlab.com/invuls/iot-projects/iotsecfuzz.git@dev'
 
 
 def init_git(cwd):
