@@ -16,7 +16,7 @@ class RunPolicy(Enum):
 
 
 # Module categories
-CATEGORIES = ['hardware', 'firmware', 'communication/arp',
+CATEGORIES = ['hardware', 'firmware', 'communication/tcpip',
               'communication/bluetooth', 'communication/nrf24',
               'communication/wifi', 'communication/zigbee', 'communication']
 # Types of modules
