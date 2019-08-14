@@ -35,6 +35,8 @@ logging.basicConfig(
 # Create the logger
 logger = logging.getLogger('isf')
 
+logger.setLevel(logging.INFO)
+
 # Framework home directory
 HOME_DIR = None
 
