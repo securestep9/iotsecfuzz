@@ -58,7 +58,7 @@ def add_arguments(parser):
     parser.add_argument('--home', type=str, help='framework home directory')
 
 
-def resolve_dependencies(name, collected_modules):
+def resolve_dependencies(module_name, collected_modules):
     installed_modules = {}
     for name in collected_modules:
         manifest = collected_modules[name][0]
@@ -72,10 +72,16 @@ def resolve_dependencies(name, collected_modules):
     config = get_config()
     url = config['repository'].rstrip('/')
     repo = RemotePackageRepository(url)
-    resolver = PackageResolver({name: '*'}, repo)
+    resolver = PackageResolver({module_name: '*'}, repo)
     resolved = resolver.resolve()
     result = {}
     for package in resolved:
+        if package in installed_modules \
+                and installed_modules[package].version == resolved[package]:
+            core.logger.info('Package %s already installed, skipping' % (
+                    package + '@' + resolved[package]))
+            continue
+        # TODO handle version mismatch of already installed package
         result[package + '@' + resolved[package]] = \
             repo.packages[package]['versions'][resolved[package]]
     return result
