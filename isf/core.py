@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from pathlib import Path
 
@@ -176,6 +177,10 @@ def check_modules_dependencies(installed_modules):
 
 
 def load_modules():
+    # Add modules directories to PYTHONPATH
+    if len(modules_dirs) and modules_dirs[0] not in sys.path:
+        sys.path.extend(modules_dirs)
+
     collected_modules = {}
 
     # Collect modules from all paths
@@ -201,6 +206,7 @@ def load_modules():
             logger.exception('Error loading module %s' % qualified_name,
                              exc_info=e)
         else:
+            modules_loaded += 1
             if len(fetched) > 1:
                 # Submodules got loaded
                 logger.debug('Loaded %d submodules from module %s:' % (
@@ -210,10 +216,9 @@ def load_modules():
                 submodules_loaded += len(fetched.keys())
             else:
                 logger.debug('Module loaded successfully')
-                modules_loaded += 1
             modules.update(fetched)
 
-    logger.info('Successfully loaded %d modules and %d submodules' % (
+    logger.info('Successfully loaded %d modules with %d submodules' % (
         modules_loaded, submodules_loaded))
 
 

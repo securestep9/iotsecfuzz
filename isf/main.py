@@ -30,9 +30,6 @@ def main():
     if args.paths:
         core.modules_dirs.extend(args.paths)
 
-    # Add modules directories to PYTHONPATH
-    sys.path.extend(core.modules_dirs)
-
     if args.gui:
         pass
     else:
