@@ -100,7 +100,7 @@ def install_from_directory(path, manifest=None, manifest_path=None):
         env = os.environ.copy()
         env['PYTHONPATH'] = (';' if os.name == 'nt' else ':').join(sys.path)
         run_with_logger(
-            ['python', 'setup.py', 'install', '--install-lib',
+            ['python3', 'setup.py', 'install', '--install-lib',
              core.MODULES_DIR],
             prefix='pip', error_msg='Unable to install module', env=env)
 

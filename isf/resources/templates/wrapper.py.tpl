@@ -25,7 +25,7 @@ elif sys.platform == 'darwin':
 else:
     # Linux
     # TODO test with gnome-terminal
-    cmd = ['python', "'%s'" % file]
+    cmd = ['python3', "'%s'" % file]
     subprocess.call(
         ' '.join(['x-terminal-emulator', '-e', "%s" % ' '.join(cmd)]),
         shell=True)
