@@ -9,6 +9,8 @@
 
 ### Email: iotsecfuzz@gmail.com
 
+![](https://cdn.discordapp.com/attachments/140787642647183360/613803061667823636/2019-08-21_20.43.12.jpg)
+
 
 #### What is IoTSecFuzz?
 
