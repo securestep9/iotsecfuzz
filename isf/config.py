@@ -29,9 +29,13 @@ class Configuration:
                 self.data = self.default
         else:
             self.data = self.default
+            self.save()
 
     def get_data(self):
         return self.data
+
+    def __contains__(self, key):
+        return key in self.data
 
     def __getitem__(self, item):
         """

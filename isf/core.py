@@ -131,6 +131,9 @@ def collect_module_from_directory(module_root):
                 logger.debug(
                     'Found a valid manifest file at "%s"' % manifest_path)
                 result[qualified_name] = (manifest, manifest_path)
+    if len(result) > 1:
+        raise ModuleLoadingError(
+            'Each module should be located inside its own package')
     return result
 
 
