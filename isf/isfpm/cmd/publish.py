@@ -42,7 +42,10 @@ def run(args):
                                  headers={
                                      'Authorization': 'JWT ' + token
                                  })
-        data = response.json()
+        try:
+            data = response.json()
+        except:
+            data = {}
         if response.status_code != 200:
             logger.error('Unable to publish package: '
                          + (data['detail']
