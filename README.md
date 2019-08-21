@@ -11,7 +11,6 @@
 
 ![](https://cdn.discordapp.com/attachments/140787642647183360/613803061667823636/2019-08-21_20.43.12.jpg)
 
-
 #### What is IoTSecFuzz?
 
 **IoTSecFuzz(ISF)** was created with the aim of combining the maximum number of utilities for comprehensive testing of IoT device security at all levels of implementation. It has a convenient console in order to use it as a stand-alone application, as well as the ability to import it as a library.
