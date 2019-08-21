@@ -1,10 +1,8 @@
 # IoTSecFuzz
-{: .gitlab-purple}
 
 #### Invuls CTF Team Project - Copyright 2018
 
 ### Written by: Ilya Shaposhnikov (@drakylar), Sergey Bliznyuk (@bronzebee) and Sofia Marakhovich (@Soff).
-{: .gitlab-purple}
 
 
 ### Twitter: [@iotsecfuzz](https://twitter.com/iotsecfuzz/)
@@ -19,6 +17,25 @@
    The key aspects of the tool has become a flexible modular system with the ability to add your own modules and combine them.
 
 ### Structure
+
+```mermaid
+graph TB;
+subgraph "IotSecFuzz Framework"
+  subgraph "Hardware"
+  Module1[Module]-->Submodule1[Submodule];
+  Module1[Module]-->Submodule2[Submodule];
+  Module2[Module]-->Submodule3[Submodule]
+  end
+  subgraph "Firmware"
+    Module3[Module]-->Submodule4[Submodule];
+    Module3[Module]-->Submodule5[Submodule];
+  end
+  subgraph "Communication"
+    Module4[Module]-->Submodule7[Submodule];
+    Module4[Module]-->Submodule8[Submodule];
+  end
+end
+```
 
 The framework has the ability to operate with the tested device at three levels:
 
@@ -103,27 +120,29 @@ The following modules are available in the framework (10.08.2019):
 #### Console UI
 
 Welcome!
+
 ![](https://i.imgur.com/t8Ejwey.png)
 
 Commands:
+
 ![](https://i.imgur.com/8pa1Hm6.png)
 
 Example CLI usage (with ttltalker module):
+
 ![](https://i.imgur.com/8EtGrGd.gif)
 
 
 Dumping firmware from U-Boot UART CLI:
 
-![](https://cdn.discordapp.com/attachments/140787642647183360/508664495883681792/image1.jpg)
-![](https://media.discordapp.net/attachments/140787642647183360/508664821906931713/image0.jpg?width=1462&height=1097)
+![](https://media.discordapp.net/attachments/140787642647183360/508664821906931713/image0.jpg?width=700&height=500)
 
 
 [![asciicast](https://asciinema.org/a/262659.svg)](https://asciinema.org/a/262659)
 
 
 Dumping firmware from CFE UART CLI:
-[![asciicast](https://asciinema.org/a/262619.svg)](https://asciinema.org/a/262619)
 
+[![asciicast](https://asciinema.org/a/262619.svg)](https://asciinema.org/a/262619)
 
 
 
