@@ -4,7 +4,7 @@
 #### Invuls CTF Team Project - Copyright 2018
 
 ### Written by: Ilya Shaposhnikov (@drakylar), Sergey Bliznyuk (@bronzebee) and Sofia Marakhovich (@Soff).
-
+{: .gitlab-purple}
 
 
 ### Twitter: [@iotsecfuzz](https://twitter.com/iotsecfuzz/)
