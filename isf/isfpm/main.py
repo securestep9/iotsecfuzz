@@ -1,39 +1,67 @@
-from semver import max_satisfying
-import requests
+import os
+import sys
+from .. import core
+from ..config import Configuration
+
+config = None
+
+config_default = {
+    'repository': 'http://188.166.134.197/',
+    'strategy': 'keep_none',
+}
+
+config_schema = {
+    'type': dict,
+    'template': {
+        'repository': {
+            'type': str,
+            'required': True,
+        },
+        'strategy': {
+            'type': str,
+            'required': True,
+            'values': ['keep_all', 'keep_standalone', 'keep_none']
+        },
+        'auth': {
+            'type': dict,
+            'template': {
+                'username': {
+                    'type': str,
+                    'required': True
+                },
+                'token': {
+                    'type': str,
+                    'required': True
+                }
+            },
+            'required': False
+        }
+    }
+}
+
+API_URLS = {
+    'packages': '/api/v1/packages/all/',
+    'publish': '/api/v1/packages/publish/',
+    'auth': '/api/v1/auth/',
+}
 
 
-class Package:
+def resolve_home_directory(home_arg=None):
+    cwd = os.getcwd()
+    local_home = os.path.join(cwd, '.isf')
 
-    def __init__(self):
-        self.dependencies = {}
+    if os.path.isdir(local_home):
+        core.HOME_DIR = local_home
 
+    core.init_home_directory(home_arg)
 
-class Node:
-    def __init__(self, qualified_name, version_range):
-        self.name = qualified_name
-        self.version_ranges = [version_range]
-        self.dependencies = []
-
-    def add_edge(self, node):
-        self.dependencies.append(node)
+    sys.path.extend(core.modules_dirs)
 
 
-def resolve_node(node, resolved, unresolved=None):
-    if unresolved is None:
-        unresolved = {}
-    unresolved[node.name] = node
-    for dependency in node.dependencies:
-        if dependency.name not in resolved:
-            if dependency.name in unresolved:
-                raise Exception('Circular dependencies found: %s -> %s' % (
-                    node.name, dependency.name))
-            resolve_node(dependency, resolved, unresolved)
-        else:
-            resolved[dependency.name].version_ranges.append(
-                dependency.version_ranges[0])
-    resolved[node.name] = node
-    del unresolved[node.name]
-
-
-def resolve_dependencies():
-    pass
+def get_config():
+    global config
+    if config is None:
+        config = Configuration(os.path.join(core.DATA_DIR, 'isfpm.json'),
+                               schema=config_schema, default=config_default)
+        config.load()
+    return config

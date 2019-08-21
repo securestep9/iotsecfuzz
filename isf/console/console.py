@@ -1,5 +1,7 @@
 import logging
 from prompt_toolkit import PromptSession
+from prompt_toolkit.shortcuts.progress_bar import formatters
+from prompt_toolkit.styles import Style
 
 from .. import core
 from ..core import logger as logger, ModuleExecutionError
@@ -33,6 +35,26 @@ handler.setFormatter(ConsoleFormatter(fmt=LOGGING_FORMAT,
 
 logger.propagate = False
 logger.handlers = [handler]
+
+progress_styles = Style.from_dict({
+    'label': '#ffffff',
+    'percentage': '#ffffff',
+    'current': '#448844',
+    'bar': '#00dd00',
+    'time': '#ffffff',
+    'prefix': '#00dd00'
+})
+
+progress_formatters = custom_formatters = [
+    formatters.Text('[/] ', style='class:prefix'),
+    formatters.Label(),
+    formatters.Text(': ', style='class:label'),
+    formatters.Percentage(),
+    formatters.Text(' '),
+    formatters.Bar(sym_a='█', sym_b='█', sym_c='.'),
+    formatters.Text('  '),
+    formatters.TimeElapsed(),
+]
 
 
 def register_command(cmd):
