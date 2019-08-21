@@ -1,4 +1,5 @@
 import fnmatch
+from ..main import exclude_patterns, root_whitelist
 import os
 from ...core import logger, collect_module_from_directory
 import tarfile
@@ -15,16 +16,16 @@ def run(args):
         qualified_name = list(collected.keys())[0]
         manifest = collected[qualified_name][0]
         logger.info('Packing module %s' % qualified_name)
-        exclude_patterns = ['venv', '.idea', '.git', '*__pycache__', 'out',
-                            '.isf']
+        exclude = exclude_patterns[:]
         if 'exclude' in manifest:
-            exclude_patterns += manifest['exclude']
+            exclude += manifest['exclude']
         out_file = os.path.join(path, 'out', 'build.tar.xz')
         with tarfile.open(out_file, 'w:xz') as tar:
             for file in os.listdir(path):
+                if file not in root_whitelist:
+                    continue
                 tar.add(file, filter=lambda f: f if not any(
-                    [fnmatch.fnmatch(f.name, p) for p in
-                     exclude_patterns]) else None)
+                    [fnmatch.fnmatch(f.name, p) for p in exclude]) else None)
         logger.info('Packed into %s' % out_file)
     except KeyboardInterrupt:
         logger.warn('Build canceled')

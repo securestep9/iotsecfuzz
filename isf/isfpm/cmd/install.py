@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from ..main import API_URLS
 from ..resolver import PackageState, PackageDependency, PackageRepository, \
     PackageResolver
-from ..main import resolve_home_directory, get_config
+from ..main import resolve_home_directory, get_config, exclude_patterns
 from ... import core
 from ...console.logging import run_with_logger
 from shutil import ignore_patterns, copytree
@@ -28,7 +28,10 @@ class RemotePackageRepository(PackageRepository):
         url = f'{self.repo_url}{API_URLS["packages"]}{name}/'
         core.logger.debug('GET ' + url)
         response = requests.get(url)
-        data = response.json()
+        try:
+            data = response.json()
+        except:
+            data = {}
         if response.status_code != 200:
             err = data['detail'] if 'detail' in data else response.reason
             raise ModuleInstallationError(f'Package {name}: {err}')
@@ -110,6 +113,12 @@ def install_from_directory(path, manifest=None, manifest_path=None):
              core.MODULES_DIR],
             prefix='pip', error_msg='Unable to install module', env=env)
 
+        if os.path.isfile('requirements.txt'):
+            core.logger.info('Installing python dependencies')
+            run_with_logger(
+                ['python3', '-m', 'pip', 'install', '-r', 'requirements.txt'],
+                prefix='pip', error_msg='Unable to install module', env=env)
+
         core.logger.info('Successfully installed module %s/%s' % (
             manifest['category'], manifest['name']))
     except Exception as e:
@@ -184,8 +193,7 @@ def attempt_directory_install(name):
         core.logger.info(
             'Copying tree to temporary directory ' + copy_path)
         copytree(path, copy_path,
-                 ignore=ignore_patterns('venv', '.git', '.idea', '.isf',
-                                        '__pycache__', 'out', *to_exclude))
+                 ignore=ignore_patterns(*exclude_patterns, *to_exclude))
         install_from_directory(copy_path, manifest, manifest_path)
 
 

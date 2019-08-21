@@ -5,6 +5,13 @@ from ..config import Configuration
 
 config = None
 
+exclude_patterns = ['venv', '.idea', '.git', '*__pycache__', '__pycache__',
+                    'out', '.isf']
+
+root_whitelist = ['isf', 'setup.py', 'requirements.txt', '.gitignore',
+                  'README.md', 'readme.md', 'LICENSE.txt', 'license.txt',
+                  'LICENSE.md', 'license.md']
+
 config_default = {
     'repository': 'http://188.166.134.197/',
     'strategy': 'keep_none',
