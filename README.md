@@ -328,5 +328,10 @@ Every module has its own repository, where everyone can create issues (if there 
 - CVE category
 - Public Relations for modules creation/optimisation.
 
+### Conference speeches
+
+#### ZeroNights 2018 - "IoTSecFuzz - make your smart kettle afraid of yoy"
+ [Slides](https://docs.google.com/presentation/d/1OaMDOINzDbaEuJyinOmqHeoQF2G-_TN3_pE2qKR6g7Y/edit?usp=sharing)
+
 ### License
 This project is licensed under the MIT License.
