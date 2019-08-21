@@ -149,7 +149,27 @@ Dumping firmware from CFE UART CLI:
 
 
 #### API
-Cерега
+```python
+from isf import core
+
+core.init_home_directory()
+
+# You can edit directories to load modules from
+core.modules_dirs.append('.')
+core.load_modules()
+
+# Way 1: import the module directly
+from isf.hardware.ttltalker import TTLTalker
+
+talker = TTLTalker('/dev/ttyACM0', 9600, 0.1)
+talker.connect()
+talker.send_char('ff', False, 0)
+
+# Way 2: get module/submodule using ISF core
+send_char = core.modules['hardware/ttltalker/send_char']
+send_char.run({'com_port': '/dev/ttyACM0', 'baudrate': 9600, 'timeout': 0.1,
+               'char_hex': 'ff', 'output': False, 'output_length': 0})
+```
 
 #### Module creation
 
