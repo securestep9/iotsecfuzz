@@ -1,7 +1,8 @@
 import requests
 
 from .init import prompt
-from ..main import resolve_home_directory, get_config, API_URLS
+from ..remote import RemotePackageRepository
+from ..main import resolve_home_directory, get_config
 from ...core import logger
 
 description = 'logs you in to selected ISFPM repository'
@@ -11,10 +12,11 @@ def run(args):
     try:
         resolve_home_directory()
         config = get_config()
-        logger.info('Logging in to ' + config['repository'])
+        logger.info('Logging in to ' + config['repository']['url'])
         username = prompt.prompt_any('Enter username')
-        password = prompt.prompt_any('Password for %s' % username)
-        url = config['repository'].rstrip('/') + API_URLS['auth']
+        password = prompt.prompt_password('Enter password')
+        repo = RemotePackageRepository(config)
+        url = repo.repo_url + repo.urls['auth']
         response = requests.post(url, json={'username': username,
                                             'password': password})
         data = response.json()

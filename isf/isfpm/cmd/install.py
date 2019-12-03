@@ -3,7 +3,7 @@ import sys
 import tarfile
 import requests
 from tempfile import TemporaryDirectory
-from ..main import API_URLS
+from ..remote import RemotePackageRepository
 from ..resolver import PackageState, PackageDependency, PackageRepository, \
     PackageResolver
 from ..main import resolve_home_directory, get_config, exclude_patterns
@@ -12,44 +12,12 @@ from ...console.logging import run_with_logger
 from shutil import ignore_patterns, copytree
 
 description = 'install ISF modules'
+config = None
+repo = None
 
 
 class ModuleInstallationError(Exception):
     pass
-
-
-class RemotePackageRepository(PackageRepository):
-
-    def __init__(self, repo_url):
-        self.repo_url = repo_url
-        self.packages = {}
-
-    def query_package(self, name):
-        url = f'{self.repo_url}{API_URLS["packages"]}{name}/'
-        core.logger.debug('GET ' + url)
-        response = requests.get(url)
-        try:
-            data = response.json()
-        except:
-            data = {}
-        if response.status_code != 200:
-            err = data['detail'] if 'detail' in data else response.reason
-            raise ModuleInstallationError(f'Package {name}: {err}')
-        self.packages[name] = data
-
-    def get_versions(self, package_name):
-        if package_name not in self.packages:
-            self.query_package(package_name)
-        return list(self.packages[package_name]['versions'].keys())
-
-    def get_dependencies(self, package_name, package_version):
-        if package_name not in self.packages:
-            self.query_package(package_name)
-        if package_version not in self.packages[package_name]['versions']:
-            raise ModuleInstallationError('Package %s: no version %s found' % (
-                package_name, package_version))
-        return self.packages[package_name]['versions'][package_version][
-            'manifest']['dependencies']
 
 
 def add_arguments(parser):
@@ -62,6 +30,7 @@ def add_arguments(parser):
 
 
 def resolve_dependencies(module_name, collected_modules):
+    global config, repo
     installed_modules = {}
     for name in collected_modules:
         manifest = collected_modules[name][0]
@@ -72,9 +41,7 @@ def resolve_dependencies(module_name, collected_modules):
                 PackageDependency(dependency, dependencies[dependency])
         installed_modules[name] = state
 
-    config = get_config()
-    url = config['repository'].rstrip('/')
-    repo = RemotePackageRepository(url)
+    repo = RemotePackageRepository(config)
     resolver = PackageResolver({module_name: '*'}, repo)
     resolved = resolver.resolve()
     result = {}
@@ -131,7 +98,7 @@ def install_from_tarball(tarball):
     path = os.path.abspath(tarball)
     with TemporaryDirectory() as tmp_dir:
         core.logger.info('Unpacking to ' + tmp_dir)
-        with tarfile.open(path, 'r:xz') as tar:
+        with tarfile.open(path, 'r:' + repo.config['compression']) as tar:
             tar.extractall(path=tmp_dir)
         install_from_directory(tmp_dir)
 
@@ -151,6 +118,7 @@ def download_tarball(url, file_name):
 
 def install_from_repository(name):
     collected_modules = {}
+    global config, repo
     for modules_dir in core.modules_dirs:
         collected_modules.update(
             core.collect_module_from_directory(modules_dir))
@@ -165,12 +133,13 @@ def install_from_repository(name):
         core.logger.info('  - ' + package)
     for package in to_install:
         core.logger.info('Installing package %s' % package)
-        url = to_install[package]['dist']['tarball']
+        url = repo.repo_url + to_install[package]['dist']['tarball']
 
         # TODO add checksum verification
         integrity = to_install[package]['dist']['tarball']
         with TemporaryDirectory() as tmp_dir:
-            tarball_path = os.path.join(tmp_dir, 'release.tar.xz')
+            tarball_path = os.path.join(tmp_dir, 'release.tar.' + repo.config[
+                'compression'])
             download_tarball(url, tarball_path)
             install_from_tarball(tarball_path)
     core.logger.info('Successfully installed %d package(s)' % len(to_install))
@@ -198,7 +167,9 @@ def attempt_directory_install(name):
 
 
 def run(args):
+    global config
     resolve_home_directory(args.home)
+    config = get_config()
     try:
         for name in args.module:
             if os.path.isdir(name):

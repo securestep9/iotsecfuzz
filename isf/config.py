@@ -27,6 +27,7 @@ class Configuration:
                 self.data = data
             except:
                 self.data = self.default
+                self.save()
         else:
             self.data = self.default
             self.save()

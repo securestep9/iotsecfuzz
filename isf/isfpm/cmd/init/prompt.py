@@ -6,6 +6,10 @@ import json
 prompt_template = '<a fg="#8E33CE">[?]</a> <a fg="#FFFFFF">%s: </a>'
 
 
+def prompt_password(text):
+    return prompt(HTML(prompt_template % text), is_password=True)
+
+
 def prompt_any(question):
     return prompt(HTML(prompt_template % question))
 

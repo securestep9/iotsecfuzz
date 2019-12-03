@@ -1,6 +1,7 @@
 import os
 import sys
 from .. import core
+from .remote import repo_config_template
 from ..config import Configuration
 
 config = None
@@ -13,7 +14,9 @@ root_whitelist = ['isf', 'setup.py', 'requirements.txt', '.gitignore',
                   'LICENSE.md', 'license.md']
 
 config_default = {
-    'repository': 'http://188.166.134.197/',
+    'repository': {
+        'url': 'http://188.166.134.197/'
+    },
     'strategy': 'keep_none',
 }
 
@@ -21,7 +24,18 @@ config_schema = {
     'type': dict,
     'template': {
         'repository': {
-            'type': str,
+            'type': dict,
+            'template': {
+                'url': {
+                    'type': str,
+                    'required': True
+                },
+                'config': {
+                    'type': dict,
+                    'template': repo_config_template,
+                    'required': False
+                }
+            },
             'required': True,
         },
         'strategy': {
@@ -44,12 +58,6 @@ config_schema = {
             'required': False
         }
     }
-}
-
-API_URLS = {
-    'packages': '/api/v1/packages/all/',
-    'publish': '/api/v1/packages/publish/',
-    'auth': '/api/v1/auth/',
 }
 
 

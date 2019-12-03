@@ -1,17 +1,24 @@
 from ...core import logger
-from ..main import resolve_home_directory, get_config, API_URLS
+from ..main import resolve_home_directory, get_config
+from ..remote import RemotePackageRepository
 from . import login
 import base64
+import hashlib
 import requests
 import os
 
 description = 'publish built package to remote repository'
 
 
+def add_arguments(parser):
+    parser.add_argument('--scope', action='store', nargs='?',
+                        help='scope to publish module to')
+
+
 def run(args):
     try:
         resolve_home_directory()
-        tarball = os.path.join(os.getcwd(), 'out', 'build.tar.xz')
+        tarball = os.path.join(os.getcwd(), 'out', 'build.tar.gz')
         if not os.path.isfile(tarball):
             logger.error('No build file found')
             exit(0)
@@ -25,19 +32,21 @@ def run(args):
             return
 
         token = config['auth']['token']
+        repo = RemotePackageRepository(config)
 
         logger.info('Reading build file')
         with open(tarball, 'rb') as tar:
-            encoded = base64.b64encode(tar.read())
+            content = tar.read()
+            encoded = base64.b64encode(content)
 
         if not encoded:
             logger.error('Unable to encode build file')
             exit(0)
 
-        url = config['repository'].rstrip('/') + API_URLS['publish']
+        url = repo.repo_url + repo.urls['publish']
         logger.info('Uploading to %s' % url)
         payload = {'tarball': encoded.decode(),
-                   'integrity': '*** NOT IMPLEMENTED ***'}
+                   'integrity': hashlib.sha256(content).hexdigest()}
         response = requests.post(url, json=payload,
                                  headers={
                                      'Authorization': 'JWT ' + token
